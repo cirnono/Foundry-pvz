@@ -1,66 +1,23 @@
-## Foundry
+# PvZNFT
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+Users can mint NFTs, which represent different types of plants with different attibutes. Users can then use the NFTs they own to participate in games and fight with Zombies.
 
-Foundry consists of:
-
--   **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
--   **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
--   **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
--   **Chisel**: Fast, utilitarian, and verbose solidity REPL.
-
-## Documentation
-
-https://book.getfoundry.sh/
-
-## Usage
-
-### Build
+## Quick Start:
 
 ```shell
-$ forge build
+foundryup
+foundry build
 ```
 
-### Test
+## TODOs
 
-```shell
-$ forge test
-```
+0. Account manager, user is asked to login (or sign up if it is for the first time). Then minted NFTs, username, password, and wallet connection can be stored
+1. Implement game-logic.js, which starts the game, allow players to play with their own NFTs and verify the the provided NFTs
+2. Implement scripts that auto record contract address, player's address and the token ids they own.
+3. Write tests
+4. Front-end
+5. NFT trading
 
-### Format
+## Take-aways:
 
-```shell
-$ forge fmt
-```
-
-### Gas Snapshots
-
-```shell
-$ forge snapshot
-```
-
-### Anvil
-
-```shell
-$ anvil
-```
-
-### Deploy
-
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
-```
-
-### Cast
-
-```shell
-$ cast <subcommand>
-```
-
-### Help
-
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
-```
+1. function returns of solidiy is in the form of storing address, need to .toString() to convert to actual value
