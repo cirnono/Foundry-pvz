@@ -3,40 +3,28 @@ pragma solidity ^0.8.19;
 
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 
-error PlantFactory_insufficientFee();
+error PlantNFTFactory_insufficientFee();
 
 /**
  * @title A PvZ NFT generator
  * @author Jack Chen
  * @notice This contract is for creating NFTs that can be used in a PvZ game
  */
-contract PvZNFT is ERC721URIStorage {
+contract PlantNFTFactory is ERC721URIStorage {
     uint256 private s_nextTokenId;
+
     uint256 private immutable i_mintFee;
-    mapping(uint256 => Plant) private plantData; // NFT ID -> 植物属性
 
-    struct Plant {
-        string plantType; // 记录植物类型，如 "Sunflower"、"Peashooter"
-        uint256 hp;
-        uint256 produceRate;
-        uint256 attack;
-    }
+    mapping(uint256 => string) private s_tokenIdToPlantData; // NFT ID -> 植物属性
 
-    // 事件定义
-    event PlantMinted(
-        uint256 tokenId,
-        string plantType,
-        uint256 hp,
-        uint256 produceRate,
-        uint256 attack
-    );
-
+    event PlantMinted(uint256 tokenId, string metadataURI);
     event PlantTraded(uint256 tokenId, address prevOwner, address newOwner);
 
     modifier sufficientFee() {
         if (msg.value <= i_mintFee) {
-            revert PlantFactory_insufficientFee();
+            revert PlantNFTFactory_insufficientFee();
         }
+        _;
     }
 
     constructor(uint256 mintFee) ERC721("PvZPlants", "PVZP") {
@@ -46,10 +34,6 @@ contract PvZNFT is ERC721URIStorage {
 
     function mintPlant(
         address player,
-        string memory plantType,
-        uint256 hp,
-        uint256 produceRate,
-        uint256 attack,
         string memory metadataURI
     ) public payable sufficientFee returns (uint256) {
         uint256 newTokenId = s_nextTokenId;
@@ -58,16 +42,11 @@ contract PvZNFT is ERC721URIStorage {
         _safeMint(player, newTokenId);
         _setTokenURI(newTokenId, metadataURI);
 
-        plantData[newTokenId] = Plant(plantType, hp, produceRate, attack);
+        s_tokenIdToPlantData[newTokenId] = metadataURI;
         // 在 mintPlant 中触发事件
-        emit PlantMinted(
-            newTokenId,
-            plantData[newTokenId].plantType,
-            plantData[newTokenId].hp,
-            plantData[newTokenId].produceRate,
-            plantData[newTokenId].attack
-        );
+        emit PlantMinted(newTokenId, metadataURI);
         return (newTokenId);
+        // the rest is executed in fulfillRandomWords
     }
 
     function tradePlant(
@@ -76,18 +55,26 @@ contract PvZNFT is ERC721URIStorage {
         address newOwner
     ) public {
         // transfer ownership from prevOwner to newOwner
-        // maybe carried out payment as well?
+        require(
+            ownerOf(tokenId) == prevOwner,
+            "You are not the owner of this NFT"
+        );
         // emit event to be traced by front end
+        _safeTransfer(prevOwner, newOwner, tokenId, "");
+        emit PlantTraded(tokenId, prevOwner, newOwner);
     }
+
+    /**
+     * Internal Functions
+     */
 
     /**
      * View/Pure functions
      */
 
-    function getPlant(
+    function tokenURI(
         uint256 tokenId
-    ) public view returns (string memory, uint256, uint256, uint256) {
-        Plant memory plant = plantData[tokenId];
-        return (plant.plantType, plant.hp, plant.produceRate, plant.attack);
+    ) public view override returns (string memory) {
+        return (s_tokenIdToPlantData[tokenId]);
     }
 }

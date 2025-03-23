@@ -1,24 +1,33 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.19;
 
 import {Test, console} from "forge-std/Test.sol";
-import {Counter} from "../src/Counter.sol";
+import {DeployPlantFactory} from "script/DeployPlantFactory.s.sol";
+import {HelperConfig} from "script/HelperConfig.s.sol";
+import {PlantNFTFactory} from "../../src/PlantNFTFactory.sol";
 
-contract CounterTest is Test {
-    Counter public counter;
+contract PlantNFTFactoryTest is Test {
+    PlantNFTFactory public plantNFTFactory;
+    HelperConfig public helperConfig;
+
+    address public PLAYER = makeAddr("player");
+    uint256 public constant BALANCE = 100 ether;
+
+    uint256 mintFee;
+    address vrfCoordinator;
+    bytes32 gasLane;
+    uint32 callbackGasLimit;
+    uint256 subscriptionId;
 
     function setUp() public {
-        counter = new Counter();
-        counter.setNumber(0);
-    }
+        DeployPlantFactory deployer = new DeployPlantFactory();
+        (plantNFTFactory, helperConfig) = deployer.deployContract();
 
-    function test_Increment() public {
-        counter.increment();
-        assertEq(counter.number(), 1);
-    }
-
-    function testFuzz_SetNumber(uint256 x) public {
-        counter.setNumber(x);
-        assertEq(counter.number(), x);
+        HelperConfig.NetworkConfig memory config = helperConfig.getConfig();
+        mintFee = config.mintFee;
+        vrfCoordinator = config.vrfCoordinator;
+        gasLane = config.gasLane;
+        callbackGasLimit = config.callbackGasLimit;
+        subscriptionId = config.subscriptionId;
     }
 }
