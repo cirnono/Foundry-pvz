@@ -77,4 +77,8 @@ contract PlantNFTFactory is ERC721URIStorage {
     ) public view override returns (string memory) {
         return (s_tokenIdToPlantData[tokenId]);
     }
+
+    function getNumOfNFTMinted() external view returns (uint256) {
+        return s_nextTokenId - 1;
+    }
 }

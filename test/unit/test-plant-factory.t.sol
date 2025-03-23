@@ -21,7 +21,7 @@ contract PlantNFTFactoryTest is Test {
 
     function setUp() public {
         DeployPlantFactory deployer = new DeployPlantFactory();
-        (plantNFTFactory, helperConfig) = deployer.deployContract();
+        (plantNFTFactory, helperConfig) = deployer.deployPlantNFTFactory();
 
         HelperConfig.NetworkConfig memory config = helperConfig.getConfig();
         mintFee = config.mintFee;
@@ -29,5 +29,9 @@ contract PlantNFTFactoryTest is Test {
         gasLane = config.gasLane;
         callbackGasLimit = config.callbackGasLimit;
         subscriptionId = config.subscriptionId;
+    }
+
+    function testPlantStartingStatus() public view {
+        assert(plantNFTFactory.getNumOfNFTMinted() == 0);
     }
 }
