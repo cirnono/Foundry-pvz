@@ -3,25 +3,22 @@ pragma solidity ^0.8.19;
 
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 
-error PlantNFTFactory_insufficientFee();
-
 /**
  * @title A PvZ NFT generator
  * @author Jack Chen
  * @notice This contract is for creating NFTs that can be used in a PvZ game
  */
 contract PlantNFTFactory is ERC721URIStorage {
-    uint256 private s_nextTokenId;
+    error PlantNFTFactory_insufficientFee();
 
+    uint256 private s_nextTokenId;
     uint256 private immutable i_mintFee;
 
-    mapping(uint256 => string) private s_tokenIdToPlantData; // NFT ID -> 植物属性
-
-    event PlantMinted(uint256 tokenId, string metadataURI);
+    event PlantMinted(uint256 indexed tokenId, string metadataURI);
     event PlantTraded(uint256 tokenId, address prevOwner, address newOwner);
 
     modifier sufficientFee() {
-        if (msg.value <= i_mintFee) {
+        if (msg.value < i_mintFee) {
             revert PlantNFTFactory_insufficientFee();
         }
         _;
@@ -42,7 +39,6 @@ contract PlantNFTFactory is ERC721URIStorage {
         _safeMint(player, newTokenId);
         _setTokenURI(newTokenId, metadataURI);
 
-        s_tokenIdToPlantData[newTokenId] = metadataURI;
         // 在 mintPlant 中触发事件
         emit PlantMinted(newTokenId, metadataURI);
         return (newTokenId);
@@ -72,11 +68,11 @@ contract PlantNFTFactory is ERC721URIStorage {
      * View/Pure functions
      */
 
-    function tokenURI(
-        uint256 tokenId
-    ) public view override returns (string memory) {
-        return (s_tokenIdToPlantData[tokenId]);
-    }
+    // function tokenURI(
+    //     uint256 tokenId
+    // ) public view override returns (string memory) {
+    //     return (_tokenURIs[tokenId]);
+    // }
 
     function getNumOfNFTMinted() external view returns (uint256) {
         return s_nextTokenId - 1;

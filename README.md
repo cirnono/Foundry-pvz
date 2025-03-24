@@ -24,6 +24,7 @@ foundry build
 
 1. function returns of solidiy is in the form of storing address, need to .toString() to convert to actual value
 2. block.timestamp can get current time
+3. vm.warp can set timestamp, vm.roll can change block number. It is good practice to vm.warp(block.timestamp + <whatever operations>; vm.roll(block.numer + 1);)
 
 ## Sturcture:
 
