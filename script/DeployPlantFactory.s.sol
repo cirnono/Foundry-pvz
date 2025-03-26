@@ -4,7 +4,7 @@ pragma solidity ^0.8.19;
 import {Script} from "forge-std/Script.sol";
 import "../src/PlantNFTFactory.sol";
 import {HelperConfig} from "script/HelperConfig.s.sol";
-import {CreateSubscription} from "script/Interactions.s.sol";
+import {CreateSubscription, FundSubscription, AddConsumer} from "script/Interactions.s.sol";
 
 contract DeployPlantFactory is Script {
     function run() external {
@@ -26,11 +26,24 @@ contract DeployPlantFactory is Script {
             CreateSubscription createSubscription = new CreateSubscription();
             (config.subscriptionId, config.vrfCoordinator) = createSubscription
                 .createSubscription(config.vrfCoordinator);
+            FundSubscription fundSubscription = new FundSubscription();
+            fundSubscription.fundSubscription(
+                config.vrfCoordinator,
+                config.subscriptionId,
+                config.link
+            );
         }
 
         vm.startBroadcast();
         PlantNFTFactory plantNFTFactory = new PlantNFTFactory(config.mintFee);
         vm.stopBroadcast();
+        AddConsumer addConsumer = new AddConsumer();
+        addConsumer.addConsumer(
+            address(plantNFTFactory),
+            config.vrfCoordinator,
+            config.subscriptionId
+        );
+
         return (plantNFTFactory, helperConfig);
     }
 }

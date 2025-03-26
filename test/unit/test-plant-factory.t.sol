@@ -8,12 +8,17 @@ import {PlantNFTFactory} from "../../src/PlantNFTFactory.sol";
 
 contract PlantNFTFactoryTest is Test {
     event PlantMinted(uint256 indexed tokenId, string metadataURI);
-    event PlantTraded(uint256 tokenId, address prevOwner, address newOwner);
+    event PlantTraded(
+        uint256 indexed tokenId,
+        address indexed prevOwner,
+        address indexed newOwner
+    );
 
     PlantNFTFactory public plantNFTFactory;
     HelperConfig public helperConfig;
 
     address public PLAYER = makeAddr("player");
+    address public OTHER = makeAddr("other");
     uint256 public constant STARTING_PLAYER_BALANCE = 100 ether;
 
     uint256 mintFee;
@@ -34,6 +39,7 @@ contract PlantNFTFactoryTest is Test {
         subscriptionId = config.subscriptionId;
 
         vm.deal(PLAYER, STARTING_PLAYER_BALANCE);
+        vm.deal(OTHER, STARTING_PLAYER_BALANCE);
     }
 
     function testPlantStartingStatus() public view {
@@ -41,8 +47,6 @@ contract PlantNFTFactoryTest is Test {
     }
 
     function testPlantMintWhenYouDontPayEnough() public {
-        vm.prank(PLAYER);
-
         vm.expectRevert(
             PlantNFTFactory.PlantNFTFactory_insufficientFee.selector
         );
@@ -51,7 +55,6 @@ contract PlantNFTFactoryTest is Test {
 
     function testPlantMintOne() public {
         // Arrange
-        vm.prank(PLAYER);
         // Act
         uint256 tokenId = plantNFTFactory.mintPlant{value: mintFee}(
             PLAYER,
@@ -67,7 +70,6 @@ contract PlantNFTFactoryTest is Test {
     }
 
     function testPlantMintEmitEvent() public {
-        vm.prank(PLAYER);
         vm.expectEmit(true, false, false, true, address(plantNFTFactory));
         emit PlantMinted(1, "hhtp://a");
         uint256 tokenId = plantNFTFactory.mintPlant{value: mintFee}(
@@ -77,13 +79,24 @@ contract PlantNFTFactoryTest is Test {
     }
 
     function testPlantTransferByNonOwner() public {
-        vm.prank(PLAYER);
         uint256 tokenId = plantNFTFactory.mintPlant{value: mintFee}(
             PLAYER,
             "hhtp://a"
         );
+
+        vm.expectRevert("You are not the owner of this NFT");
+        plantNFTFactory.tradePlant(tokenId, OTHER, PLAYER);
     }
-    // TODO: test all functions from the contracts
-    // TODO: use next.js to build a simple front end
-    // TODO: quickly learn golang and rust
+
+    function testPlantTradeEmitEvent() public {
+        uint256 tokenId = plantNFTFactory.mintPlant{value: mintFee}(
+            PLAYER,
+            "hhtp://a"
+        );
+
+        vm.expectEmit(true, true, true, false, address(plantNFTFactory));
+        emit PlantTraded(tokenId, PLAYER, OTHER);
+        plantNFTFactory.tradePlant(tokenId, PLAYER, OTHER);
+        console.log(tokenId);
+    }
 }

@@ -15,7 +15,11 @@ contract PlantNFTFactory is ERC721URIStorage {
     uint256 private immutable i_mintFee;
 
     event PlantMinted(uint256 indexed tokenId, string metadataURI);
-    event PlantTraded(uint256 tokenId, address prevOwner, address newOwner);
+    event PlantTraded(
+        uint256 indexed tokenId,
+        address indexed prevOwner,
+        address indexed newOwner
+    );
 
     modifier sufficientFee() {
         if (msg.value < i_mintFee) {
