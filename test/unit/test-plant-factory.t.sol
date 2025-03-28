@@ -2,7 +2,7 @@
 pragma solidity ^0.8.19;
 
 import {Test, console} from "forge-std/Test.sol";
-import {DeployPlantFactory} from "script/DeployPlantFactory.s.sol";
+import {DeployPlantNFTFactory} from "script/DeployPlantNFTFactory.s.sol";
 import {HelperConfig} from "script/HelperConfig.s.sol";
 import {PlantNFTFactory} from "../../src/PlantNFTFactory.sol";
 
@@ -28,7 +28,7 @@ contract PlantNFTFactoryTest is Test {
     uint256 subscriptionId;
 
     function setUp() public {
-        DeployPlantFactory deployer = new DeployPlantFactory();
+        DeployPlantNFTFactory deployer = new DeployPlantNFTFactory();
         (plantNFTFactory, helperConfig) = deployer.deployPlantNFTFactory();
 
         HelperConfig.NetworkConfig memory config = helperConfig.getConfig();

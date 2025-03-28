@@ -6,7 +6,7 @@ import "../src/PlantNFTFactory.sol";
 import {HelperConfig} from "script/HelperConfig.s.sol";
 import {CreateSubscription, FundSubscription, AddConsumer} from "script/Interactions.s.sol";
 
-contract DeployPlantFactory is Script {
+contract DeployPlantNFTFactory is Script {
     function run() external {
         PlantNFTFactory plantNFTFactory;
         HelperConfig helperConfig;
