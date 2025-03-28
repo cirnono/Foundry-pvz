@@ -5,6 +5,7 @@ Users can mint NFTs, which represent different types of plants with different at
 ## Quick Start:
 
 ```shell
+curl -L https://foundry.paradigm.xyz | bash
 foundryup
 foundry build
 ```
