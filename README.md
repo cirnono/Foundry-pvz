@@ -7,15 +7,18 @@ Users can mint NFTs, which represent different types of plants with different at
 ```shell
 curl -L https://foundry.paradigm.xyz | bash
 foundryup
-foundry build
+forge build
+yarn
 ```
 
 ## Private Key:
 
+To protect your private key
+
 1. Run and enter your private key, secure with a password
 
 ```shell
-cast wallet import <a_name> --interactive
+cast wallet import YOUR_ACCOUNT_NAME --interactive
 ```
 
 2. View existing 'accounts' with
@@ -27,8 +30,36 @@ cast wallet list
 3. Run script without having private key in anywhere of the files
 
 ```shell
-forge script script/Interactions.s.sol:FundSubscription --rpc-url <url_of_the_chain> --acount <account_name> --broadcast
+forge script script/Interactions.s.sol:FundSubscription --rpc-url YOUR_RPC_URL --account YOUR_ACCOUNT_NAME --broadcast
 ```
+
+## Commands
+
+### Deploy locally
+
+run
+
+```shell
+anvil
+```
+
+to start a local node and start a new terminal while keeping the first one running
+
+then run
+
+```shell
+make deploy-anvil
+```
+
+to deploy the contracts on the local node
+
+then run
+
+```shell
+node engine/gameInterface.js
+```
+
+to start interact with the game
 
 ## TODOs
 

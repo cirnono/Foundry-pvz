@@ -1,11 +1,18 @@
 const fs = require("fs");
 const readline = require("readline");
 const Web3 = require("web3");
+<<<<<<< HEAD:engine/gamInterfaces.js
 const ethers = require("ethers");
 const USERS_FILE = "utils/user.json";
+=======
+require("dotenv").config();
+>>>>>>> refs/remotes/origin/master:engine/gamInterface.js
 const accountManager = "accountManager.js";
 const gameCore = "gameCore.js";
 const manageNFT = "manageNFT.js";
+const USERS_FILE = "utils/user.json";
+const plantFactoryConfig = "utils/plantFactoryConfig.json";
+const randomNumberGeneratorConfig = "utils/randomNumberGeneratorConfig.json";
 
 
 const rl = readline.createInterface({
@@ -77,9 +84,9 @@ function tradeNFT() {
  * Internal helper functions
  */
 function getContract() {
-  const web3 = new Web3(""); // contract address
-  const contractABI = []; // should be placed in another file
-  const contractAddress = ""; // should be read from another file
+  const web3 = new Web3(plantFactoryConfig.config["local"].providerUrl); // chain address - should be different depending on the chain
+  const contractABI = plantFactoryConfig.plantNFTFactoryABI; // should be placed in another file
+  const contractAddress = plantFactoryConfig.config["local"].contractAddress; // should be read from another file
   const contract = new web3.eth.Contract(contractABI, contractAddress);
 
   return contract;
@@ -96,6 +103,7 @@ mainPage()
   });
 
 async function mainPage() {
+  console.log("You are currently on the local anvil chain");
   console.log("Please select from the following options: ");
   console.log("1. PlayGame");
   console.log("2. Account");
