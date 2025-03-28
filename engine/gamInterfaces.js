@@ -1,10 +1,12 @@
 const fs = require("fs");
 const readline = require("readline");
 const Web3 = require("web3");
+const ethers = require("ethers");
 const USERS_FILE = "utils/user.json";
 const accountManager = "accountManager.js";
 const gameCore = "gameCore.js";
 const manageNFT = "manageNFT.js";
+
 
 const rl = readline.createInterface({
   input: process.stdin,
@@ -23,6 +25,9 @@ function startGame() {
   // get user info
   // pass to gameCore.startGame
   // listen to termination of game - e.g. user click terminate
+  const contract = getContract();
+
+
 }
 
 /**
@@ -31,7 +36,7 @@ function startGame() {
  *      2. mint NFT
  *      3. trade NFT
  */
-function connectWallet() {
+async function connectWallet() {
   // check existing package
 }
 
@@ -96,11 +101,12 @@ async function mainPage() {
   console.log("2. Account");
   console.log("3. Exit");
   const selection = await prompt("Enter the number index to select...");
+  let walletIsConnected = false;
 
   if (selection == "1") {
     gamePage();
   } else if (selection == "2") {
-    accountPage();
+    accountPage(walletIsConnected);
   }
 }
 
@@ -108,7 +114,7 @@ async function gamePage() {
   startGame();
 }
 
-async function accountPage() {
+async function accountPage(walletIsConnected) {
   if (!walletIsConnected) {
     connectWallet();
   }
