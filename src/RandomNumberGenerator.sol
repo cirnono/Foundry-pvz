@@ -21,9 +21,11 @@ contract RandomNumberGenerator is VRFConsumerBaseV2Plus {
         i_callbackGasLimit = callbackGasLimit;
     }
 
-    event randomNumberGenerated(uint256[]);
+    event randomNumberGenerated(uint indexed, uint256[]);
 
-    function makeRandomNumberRequest(uint32 numWords) internal {
+    function makeRandomNumberRequest(
+        uint32 numWords
+    ) internal returns (uint256) {
         uint256 requestId = s_vrfCoordinator.requestRandomWords(
             VRFV2PlusClient.RandomWordsRequest({
                 keyHash: i_keyHash,
@@ -36,14 +38,15 @@ contract RandomNumberGenerator is VRFConsumerBaseV2Plus {
                 )
             })
         );
+        return requestId;
     }
 
-    // 构造函数，初始化植物数据
+    // return a list of random number requested
     function fulfillRandomWords(
         uint256 requestId,
         uint256[] calldata randomWords
     ) internal override {
         // emit the random numbers to be catch by front end
-        emit randomNumberGenerated(randomWords);
+        emit randomNumberGenerated(requestId, randomWords);
     }
 }
