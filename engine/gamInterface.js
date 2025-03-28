@@ -1,19 +1,13 @@
 const fs = require("fs");
 const readline = require("readline");
 const Web3 = require("web3");
-<<<<<<< HEAD:engine/gamInterfaces.js
 const ethers = require("ethers");
-const USERS_FILE = "utils/user.json";
-=======
 require("dotenv").config();
->>>>>>> refs/remotes/origin/master:engine/gamInterface.js
 const accountManager = "accountManager.js";
 const gameCore = "gameCore.js";
 const manageNFT = "manageNFT.js";
-const USERS_FILE = "utils/user.json";
 const plantFactoryConfig = "utils/plantFactoryConfig.json";
 const randomNumberGeneratorConfig = "utils/randomNumberGeneratorConfig.json";
-
 
 const rl = readline.createInterface({
   input: process.stdin,
@@ -34,8 +28,6 @@ function startGame() {
   // listen to termination of game - e.g. user click terminate
   const contract = getContract();
   console.log("Game loop developing...");
-
-
 }
 
 /**
@@ -45,54 +37,44 @@ function startGame() {
  *      3. trade NFT
  */
 async function connectWallet() {
-  // check existing package
+  // check existing package to get the walletaddress
+  const userWalletAddress = "";
+  if (!accountManager.getUserByAddress(userWalletAddress)) {
+    accountManager.addUser(userWalletAddress, []);
+  }
+
+  return userWalletAddress;
 }
 
-async function mintNFT() {
-  // get contract
-  const contract = getContract();
-  // check userinfo
-
-  // ask to login or register
+async function mintNFT(walletAddress) {
   // get wallet address
-  // pass to manageNFT.mintNFT()
-  console.log("Please log in or sign up");
-  const userInfo = await accountPrompt();
-  const user = await ethers.getSigner(userInfo.walletAddress);
-  console.log(user);
-  console.log("------------------------------------------");
+  let tokens = accountManager.getUserByAddress(walletAddress).ownedNFT;
 
-  // get contract
-  const PvZNFT = await ethers.getContractAt("PvZNFT", contract.address);
-  console.log(`Got contract PvZNFT at ${PvZNFT.address}`);
-
-  // get what user want to mint
+  // get what user want to mint - need to update
   console.log("Available plants: ", Object.keys(plantFeatures).join(", "));
   const plantType = await prompt("Enter plant type: ");
-
   if (!plantFeatures[plantType]) {
     console.log("Invalid plant type!");
     return;
   }
+
+  const tokenId = manageNFT.mintNFT(walletAddress, plantType);
+  tokens.push(tokenId.toString());
+  accountManager.updateUserTokens(walletAddress, tokens);
 }
 
-function tradeNFT() {
-  // get contract
-  // check userinfo
-  // get target address
-  // pass to manageNFT.tradeNFT()
-}
+function tradeNFT(fromWalletAddress) {
+  let from = accountManager.getUserByAddress(fromWalletAddress);
+  let fromTokens = from.tokens;
+  let to = accountManager.getUserByAddress(toWalletAddress); // get from user by prompt
+  let toTokens = to.tokens;
+  let tokenId = 1; // get from user by prompt
 
-/**
- * Internal helper functions
- */
-function getContract() {
-  const web3 = new Web3(plantFactoryConfig.config["local"].providerUrl); // chain address - should be different depending on the chain
-  const contractABI = plantFactoryConfig.plantNFTFactoryABI; // should be placed in another file
-  const contractAddress = plantFactoryConfig.config["local"].contractAddress; // should be read from another file
-  const contract = new web3.eth.Contract(contractABI, contractAddress);
-
-  return contract;
+  manageNFT.tradeNFT(tokenId, from, to); // should get a message indicating successful or not
+  // manipulate the token arrays
+  accountManager.updateUserTokens(fromWalletAddress, fromTokens);
+  accountManager.updateUserTokens(toWalletAddress, toTokens);
+  // update user file
 }
 
 /**
@@ -126,8 +108,9 @@ async function gamePage() {
 }
 
 async function accountPage(walletIsConnected) {
+  let walletAddress;
   if (!walletIsConnected) {
-    connectWallet();
+    walletAddress = connectWallet();
   }
   console.log("Please select from the following options: ");
   console.log("1. MintNFT");
@@ -136,9 +119,9 @@ async function accountPage(walletIsConnected) {
   const selection = await prompt("Enter the number index to select...");
 
   if (selection == "1") {
-    mintNFT();
+    mintNFT(walletAddress);
   } else if (selection == "2") {
-    tradeNFT();
+    tradeNFT(walletAddress);
   }
 }
 

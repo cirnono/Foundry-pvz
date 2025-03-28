@@ -6,9 +6,13 @@ const { accountPrompt } = require("./user-manager.js");
 require("dotenv").config();
 const USERS_FILE = "./user.json";
 
+const MINT_FEE = ethers.utils.parseEther("0.1");
+
 async function tradeNFT() {
+  const plantNFTFactory = getPlantNFTFactory();
+
   try {
-    const tx = await PvZNFT.tradePlant(tokenId, from, to);
+    const tx = await plantNFTFactory.tradePlant(tokenId, from, to);
 
     const receipt = await tx.wait();
   } catch (error) {
@@ -16,28 +20,24 @@ async function tradeNFT() {
   }
 }
 
-async function mintNFT() {
-  console.log(deployer);
-  console.log("Minting new plant for wallet address: ", userInfo.walletAddress);
+async function mintNFT(walletAddress, plantType) {
+  const plantNFTFactory = getPlantNFTFactory();
 
-  // define properties of the plant
-  const mintFee = ethers.utils.parseEther("0.1");
-  const metadataURI = plantFeatures[plantType].metadataURI;
-  let message = plantFeatures[plantType].message;
+  console.log("Contract found at: ", contract.address);
+  console.log("Minting new plant for wallet address: ", walletAddress);
+
+  // request random number from randomNumberGenerator
+  // generate attributes
   let attributes = {};
-
-  // generate actual properties
-  for (const [key, range] of Object.entries(
-    plantFeatures[plantType].attributes
-  )) {
-    attributes[key] =
-      Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
-  }
-
-  // mintting process
+  let message = plantFeatures[plantType].message;
+  // output to files
+  // upload to IPFS
+  // obtain link
+  const metadataURI = plantFeatures[plantType].metadataURI;
+  // mint
   try {
-    const tx = await PvZNFT.mintPlant(user.address, metadataURI, {
-      value: mintFee,
+    const tx = await plantNFTFactory.mintPlant(user.address, metadataURI, {
+      value: MINT_FEE,
       gasLimit: 500000,
     });
 
@@ -66,17 +66,19 @@ async function mintNFT() {
       console.log(`HP: ${hp}`);
       console.log(`Produce Rate: ${produceRate}`);
       console.log(`Attack: ${attack}`);
-
-      let users = [];
-      if (fs.existsSync(USERS_FILE)) {
-        users = JSON.parse(fs.readFileSync(USERS_FILE, "utf8"));
-      }
-      userInfo.ownTokens.push(tokenId.toString());
-      users.pop();
-      users.push(userInfo);
-      fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2), "utf8");
     }
   } catch (error) {
     console.error("❌ Minting failed:", error);
   }
 }
+
+function getPlantNFTFactory() {
+  const web3 = new Web3(plantFactoryConfig.config["local"].providerUrl); // chain address - should be different depending on the chain
+  const contractABI = plantFactoryConfig.plantNFTFactoryABI; // should be placed in another file
+  const contractAddress = plantFactoryConfig.config["local"].contractAddress; // should be read from another file
+  const contract = new web3.eth.Contract(contractABI, contractAddress);
+
+  return contract;
+}
+
+module.exports = { mintNFT, tradeNFT };

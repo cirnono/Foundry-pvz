@@ -10,53 +10,38 @@ const rl = readline.createInterface({
   output: process.stdout,
 });
 
-// 辅助函数：加密密码
-function encryptPassword(password) {
-  const salt = crypto.randomBytes(16).toString("hex"); // 随机生成盐
-  const hashedPassword = crypto.scryptSync(password, salt, 64).toString("hex"); // 使用 scrypt 加密密码
-  return { salt, hashedPassword };
+function updateUserTokens(walletAddress, tokens) {
+  const user = getUsers().find((user) => user.walletAddress === walletAddress);
+  user.tokens = tokens;
+  fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2), "utf8");
 }
 
-// 辅助函数：验证密码
-function verifyPassword(storedSalt, storedHashedPassword, inputPassword) {
-  const hashedInputPassword = crypto
-    .scryptSync(inputPassword, storedSalt, 64)
-    .toString("hex");
-  return storedHashedPassword === hashedInputPassword;
+function getUserByAddress(walletAddress) {
+  return getUsers().find((user) => user.walletAddress === walletAddress);
 }
 
-// 检查用户是否存在
-function getUser(username) {
+function getUsers() {
   if (!fs.existsSync(USERS_FILE)) {
     return null;
   }
-  const users = JSON.parse(fs.readFileSync(USERS_FILE, "utf8"));
-  return users.find((user) => user.username === username);
+  return JSON.parse(fs.readFileSync(USERS_FILE, "utf8"));
 }
 
 // function used to add new user
 // currently privateKey is stored as plain text, this will be inplemented to dock with user's wallet like metamesk
-function addUser(username, password, walletAddress, privateKey, ownTokens) {
-  const { salt, hashedPassword } = encryptPassword(password);
+function addUser(walletAddress, ownTokens) {
   const newUser = {
-    username,
-    passwordSalt: salt,
-    passwordHash: hashedPassword,
     walletAddress,
-    privateKey,
     ownTokens,
   };
 
-  let users = [];
-  if (fs.existsSync(USERS_FILE)) {
-    users = JSON.parse(fs.readFileSync(USERS_FILE, "utf8"));
-  }
+  let users = getUsers();
 
   users.push(newUser);
   fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2), "utf8");
 }
 
-// 登录验证
+// not functionable currently
 function login(username, password) {
   const user = getUser(username);
   if (!user) {
@@ -74,7 +59,7 @@ function login(username, password) {
   }
 }
 
-// 用户注册流程
+// not functionable currently
 async function register() {
   return new Promise((resolve, reject) => {
     rl.question("Enter username: ", (username) => {
@@ -98,7 +83,7 @@ async function register() {
   });
 }
 
-// 用户登录流程
+// not functionable currently
 async function loginUser() {
   return new Promise((resolve, reject) => {
     rl.question("Enter username: ", (username) => {
@@ -110,7 +95,7 @@ async function loginUser() {
   });
 }
 
-// 主逻辑：选择注册或登录
+// not functionable currently
 async function accountPrompt() {
   return new Promise((resolve, reject) => {
     rl.question("Are you a new user? (yes/no): ", (answer) => {
@@ -131,4 +116,8 @@ async function accountPrompt() {
   });
 }
 
-module.exports = { accountPrompt, loginUser, register };
+module.exports = {
+  getUserByAddress,
+  updateUserTokens,
+  getUsers,
+};
