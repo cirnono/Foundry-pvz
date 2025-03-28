@@ -26,6 +26,7 @@ function startGame() {
   // get user info
   // pass to gameCore.startGame
   // listen to termination of game - e.g. user click terminate
+  console.log("Game loop developing...");
 }
 
 /**
@@ -40,7 +41,9 @@ function connectWallet() {
 
 async function mintNFT() {
   // get contract
+  const contract = getContract();
   // check userinfo
+
   // ask to login or register
   // get wallet address
   // pass to manageNFT.mintNFT()
