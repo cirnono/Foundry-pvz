@@ -1,8 +1,10 @@
 const fs = require("fs");
-const crypto = require("crypto");
 const readline = require("readline");
 const Web3 = require("web3");
-const USERS_FILE = "utils/user.json"; // 用户数据存储的文件
+const USERS_FILE = "utils/user.json";
+const accountManager = "accountManager.js";
+const gameCore = "gameCore.js";
+const manageNFT = "manageNFT.js";
 
 const rl = readline.createInterface({
   input: process.stdin,
@@ -33,61 +35,94 @@ function connectWallet() {
   // check existing package
 }
 
-function mintNFT() {
+async function mintNFT() {
   // get contract
   // check userinfo
   // ask to login or register
   // get wallet address
-  // pass to mintNFT.mintNFT()
+  // pass to manageNFT.mintNFT()
+  console.log("Please log in or sign up");
+  const userInfo = await accountPrompt();
+  const user = await ethers.getSigner(userInfo.walletAddress);
+  console.log(user);
+  console.log("------------------------------------------");
+
+  // get contract
+  const PvZNFT = await ethers.getContractAt("PvZNFT", contract.address);
+  console.log(`Got contract PvZNFT at ${PvZNFT.address}`);
+
+  // get what user want to mint
+  console.log("Available plants: ", Object.keys(plantFeatures).join(", "));
+  const plantType = await prompt("Enter plant type: ");
+
+  if (!plantFeatures[plantType]) {
+    console.log("Invalid plant type!");
+    return;
+  }
 }
 
 function tradeNFT() {
   // get contract
   // check userinfo
   // get target address
-  // pass to contract.tradeNFT()
+  // pass to manageNFT.tradeNFT()
 }
 
-main()
+/**
+ * Internal helper functions
+ */
+function getContract() {
+  const web3 = new Web3(""); // contract address
+  const contractABI = []; // should be placed in another file
+  const contractAddress = ""; // should be read from another file
+  const contract = new web3.eth.Contract(contractABI, contractAddress);
+
+  return contract;
+}
+
+/**
+ * Menu functions
+ */
+mainPage()
   .then(() => process.exit(0))
   .catch((error) => {
     console.error(error);
     process.exit(1);
   });
 
-async function main() {
-  let selection = mainMenu();
-  if (selection == "1") {
-    startGame();
-  } else if (selection == "2") {
-    if (!walletIsConnected) {
-      connectWallet();
-    }
-    selection = accountMenu();
-    if (selection == "1") {
-      mintNFT();
-    } else if (selection == "2") {
-      tradeNFT();
-    }
-  }
-}
-
-async function mainMenu() {
+async function mainPage() {
   console.log("Please select from the following options: ");
   console.log("1. PlayGame");
   console.log("2. Account");
   console.log("3. Exit");
   const selection = await prompt("Enter the number index to select...");
-  return selection;
+
+  if (selection == "1") {
+    gamePage();
+  } else if (selection == "2") {
+    accountPage();
+  }
 }
 
-async function accountMenu() {
+async function gamePage() {
+  startGame();
+}
+
+async function accountPage() {
+  if (!walletIsConnected) {
+    connectWallet();
+  }
   console.log("Please select from the following options: ");
   console.log("1. MintNFT");
   console.log("2. TradeNFT");
   console.log("3. Exit");
   const selection = await prompt("Enter the number index to select...");
-  return selection;
+
+  if (selection == "1") {
+    mintNFT();
+  } else if (selection == "2") {
+    tradeNFT();
+  }
 }
 
 async function prompt(question) {
@@ -101,13 +136,4 @@ async function prompt(question) {
       resolve(ans);
     })
   );
-}
-
-function getContract() {
-  const web3 = new Web3(""); // contract address
-  const contractABI = []; // should be placed in another file
-  const contractAddress = ""; // should be read from another file
-  const contract = new web3.eth.Contract(contractABI, contractAddress);
-
-  return contract;
 }
