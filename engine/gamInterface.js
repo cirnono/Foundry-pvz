@@ -1,18 +1,9 @@
-const fs = require("fs");
-const readline = require("readline");
 const Web3 = require("web3");
-const ethers = require("ethers");
-require("dotenv").config();
 const accountManager = "accountManager.js";
 const gameCore = "gameCore.js";
 const manageNFT = "manageNFT.js";
-const plantFactoryConfig = "utils/plantFactoryConfig.json";
-const randomNumberGeneratorConfig = "utils/randomNumberGeneratorConfig.json";
-
-const rl = readline.createInterface({
-  input: process.stdin,
-  output: process.stdout,
-});
+const { prompt } = require("utils/utils.js");
+require("dotenv").config();
 
 /**
  * Play function that is used to start the game.
@@ -37,8 +28,10 @@ function startGame() {
  *      3. trade NFT
  */
 async function connectWallet() {
-  // check existing package to get the walletaddress
-  const userWalletAddress = "";
+  // to be done in front end
+  const user = Web3.eth.accounts.create();
+  const userWalletAddress = user.address;
+  const userPrivateKey = user.privateKey;
   if (!accountManager.getUserByAddress(userWalletAddress)) {
     accountManager.addUser(userWalletAddress, []);
   }
@@ -50,15 +43,7 @@ async function mintNFT(walletAddress) {
   // get wallet address
   let tokens = accountManager.getUserByAddress(walletAddress).ownedNFT;
 
-  // get what user want to mint - need to update
-  console.log("Available plants: ", Object.keys(plantFeatures).join(", "));
-  const plantType = await prompt("Enter plant type: ");
-  if (!plantFeatures[plantType]) {
-    console.log("Invalid plant type!");
-    return;
-  }
-
-  const tokenId = manageNFT.mintNFT(walletAddress, plantType);
+  const tokenId = manageNFT.mintNFT(walletAddress);
   tokens.push(tokenId.toString());
   accountManager.updateUserTokens(walletAddress, tokens);
 }
@@ -68,13 +53,17 @@ function tradeNFT(fromWalletAddress) {
   let fromTokens = from.tokens;
   let to = accountManager.getUserByAddress(toWalletAddress); // get from user by prompt
   let toTokens = to.tokens;
+
   let tokenId = 1; // get from user by prompt
 
   manageNFT.tradeNFT(tokenId, from, to); // should get a message indicating successful or not
-  // manipulate the token arrays
+  // update the token arrays
+  toTokens.push(tokenId);
+  let index = fromTokens.indexOf(tokenId);
+  fromTokens.splice(index, 1);
+  // update user file
   accountManager.updateUserTokens(fromWalletAddress, fromTokens);
   accountManager.updateUserTokens(toWalletAddress, toTokens);
-  // update user file
 }
 
 /**
@@ -94,7 +83,7 @@ async function mainPage() {
   console.log("2. Account");
   console.log("3. Exit");
   const selection = await prompt("Enter the number index to select...");
-  let walletIsConnected = false;
+  let walletIsConnected = false; // frontend,windows.ethereum
 
   if (selection == "1") {
     gamePage();
@@ -123,17 +112,4 @@ async function accountPage(walletIsConnected) {
   } else if (selection == "2") {
     tradeNFT(walletAddress);
   }
-}
-
-async function prompt(question) {
-  const readline = require("readline").createInterface({
-    input: process.stdin,
-    output: process.stdout,
-  });
-  return new Promise((resolve) =>
-    readline.question(question, (ans) => {
-      readline.close();
-      resolve(ans);
-    })
-  );
 }

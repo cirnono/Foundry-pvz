@@ -1,32 +1,42 @@
-const fs = require("fs");
-const { ethers, getNamedAccounts } = require("hardhat");
 const plantFeatures = require("../utils/plantFeatures.js");
 const contract = require("../utils/contractAddress.js");
-const { accountPrompt } = require("./user-manager.js");
+const plantFactoryConfig = "utils/plantFactoryConfig.json";
+const {
+  prompt,
+  getRandomNumber,
+  getPlantNFTFactory,
+} = require("utils/utils.js");
 require("dotenv").config();
-const USERS_FILE = "./user.json";
 
-const MINT_FEE = ethers.utils.parseEther("0.1");
+const MINT_FEE = web3.utils.toWei("0.1", "ether");
+const NUM_OF_RANDOM_ATTRIBUTES = 2;
 
 async function tradeNFT() {
   const plantNFTFactory = getPlantNFTFactory();
 
   try {
     const tx = await plantNFTFactory.tradePlant(tokenId, from, to);
-
     const receipt = await tx.wait();
+    console.log(receipt);
   } catch (error) {
     console.error("❌ Trading failed:", error);
   }
 }
 
-async function mintNFT(walletAddress, plantType) {
+async function mintNFT(walletAddress) {
   const plantNFTFactory = getPlantNFTFactory();
-
   console.log("Contract found at: ", contract.address);
   console.log("Minting new plant for wallet address: ", walletAddress);
 
+  console.log("Available plants: ", Object.keys(plantFeatures).join(", "));
+  const plantType = await prompt("Enter plant type: ");
+  if (!plantFeatures[plantType]) {
+    console.log("Invalid plant type!");
+    return;
+  }
+
   // request random number from randomNumberGenerator
+  const randomNumbers = getRandomNumber(NUM_OF_RANDOM_ATTRIBUTES);
   // generate attributes
   let attributes = {};
   let message = plantFeatures[plantType].message;
@@ -70,15 +80,6 @@ async function mintNFT(walletAddress, plantType) {
   } catch (error) {
     console.error("❌ Minting failed:", error);
   }
-}
-
-function getPlantNFTFactory() {
-  const web3 = new Web3(plantFactoryConfig.config["local"].providerUrl); // chain address - should be different depending on the chain
-  const contractABI = plantFactoryConfig.plantNFTFactoryABI; // should be placed in another file
-  const contractAddress = plantFactoryConfig.config["local"].contractAddress; // should be read from another file
-  const contract = new web3.eth.Contract(contractABI, contractAddress);
-
-  return contract;
 }
 
 module.exports = { mintNFT, tradeNFT };
