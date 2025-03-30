@@ -1,8 +1,11 @@
 const Web3 = require("web3");
-const accountManager = "accountManager.js";
-const gameCore = "gameCore.js";
-const manageNFT = "manageNFT.js";
-const { prompt } = require("utils/utils.js");
+// const gameCore = require("./gameCore.js");
+const manageNFT = require("./manageNFT.js");
+const {
+  getOrAddUserByAddress,
+  updateUserTokens,
+} = require("./accountManager.js");
+const { prompt } = require("./utils/utils.js");
 require("dotenv").config();
 
 /**
@@ -17,7 +20,6 @@ function startGame() {
   // get user info
   // pass to gameCore.startGame
   // listen to termination of game - e.g. user click terminate
-  const contract = getContract();
   console.log("Game loop developing...");
 }
 
@@ -32,26 +34,30 @@ async function connectWallet() {
   const user = Web3.eth.accounts.create();
   const userWalletAddress = user.address;
   const userPrivateKey = user.privateKey;
-  if (!accountManager.getUserByAddress(userWalletAddress)) {
-    accountManager.addUser(userWalletAddress, []);
-  }
+
+  console.log("Connecting wallet...");
+  getOrAddUserByAddress(userWalletAddress).then((user) => {
+    console.log(`Wallet connected: ${userWalletAddress}`);
+  });
 
   return userWalletAddress;
 }
 
 async function mintNFT(walletAddress) {
   // get wallet address
-  let tokens = accountManager.getUserByAddress(walletAddress).ownedNFT;
-
+  console.log("Enter minting page");
+  let tokens = await getOrAddUserByAddress(walletAddress).tokens;
+  console.log(`currently own tokens: ${tokens}`);
   const tokenId = manageNFT.mintNFT(walletAddress);
+  console.log(tokenId);
   tokens.push(tokenId.toString());
-  accountManager.updateUserTokens(walletAddress, tokens);
+  updateUserTokens(walletAddress, tokens);
 }
 
 function tradeNFT(fromWalletAddress) {
-  let from = accountManager.getUserByAddress(fromWalletAddress);
+  let from = getOrAddUserByAddress(fromWalletAddress);
   let fromTokens = from.tokens;
-  let to = accountManager.getUserByAddress(toWalletAddress); // get from user by prompt
+  let to = getOrAddUserByAddress(toWalletAddress); // get from user by prompt
   let toTokens = to.tokens;
 
   let tokenId = 1; // get from user by prompt
@@ -62,8 +68,8 @@ function tradeNFT(fromWalletAddress) {
   let index = fromTokens.indexOf(tokenId);
   fromTokens.splice(index, 1);
   // update user file
-  accountManager.updateUserTokens(fromWalletAddress, fromTokens);
-  accountManager.updateUserTokens(toWalletAddress, toTokens);
+  updateUserTokens(fromWalletAddress, fromTokens);
+  updateUserTokens(toWalletAddress, toTokens);
 }
 
 /**
@@ -77,39 +83,24 @@ mainPage()
   });
 
 async function mainPage() {
+  let walletIsConnected = false; // frontend,windows.ethereum
+  let walletAddress = "not connected";
+  if (!walletIsConnected) {
+    walletAddress = await connectWallet();
+  }
   console.log("You are currently on the local anvil chain");
   console.log("Please select from the following options: ");
   console.log("1. PlayGame");
-  console.log("2. Account");
-  console.log("3. Exit");
+  console.log("2. MintNFT");
+  console.log("3. TradeNFT");
+  console.log("4. Exit");
   const selection = await prompt("Enter the number index to select...");
-  let walletIsConnected = false; // frontend,windows.ethereum
 
   if (selection == "1") {
-    gamePage();
+    startGame();
   } else if (selection == "2") {
-    accountPage(walletIsConnected);
-  }
-}
-
-async function gamePage() {
-  startGame();
-}
-
-async function accountPage(walletIsConnected) {
-  let walletAddress;
-  if (!walletIsConnected) {
-    walletAddress = connectWallet();
-  }
-  console.log("Please select from the following options: ");
-  console.log("1. MintNFT");
-  console.log("2. TradeNFT");
-  console.log("3. Exit");
-  const selection = await prompt("Enter the number index to select...");
-
-  if (selection == "1") {
     mintNFT(walletAddress);
-  } else if (selection == "2") {
+  } else if (selection == "3") {
     tradeNFT(walletAddress);
   }
 }

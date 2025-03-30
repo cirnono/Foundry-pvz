@@ -5,11 +5,21 @@ Users can mint NFTs, which represent different types of plants with different at
 ## Quick Start:
 
 ```shell
-curl -L https://foundry.paradigm.xyz | bash
 foundryup
+forge install
 forge build
 yarn
 ```
+
+## if you have not install forge:
+
+run
+
+```shell
+curl -L https://foundry.paradigm.xyz | bash
+```
+
+and follow the instrauction
 
 ## Private Key:
 
@@ -56,7 +66,7 @@ to deploy the contracts on the local node
 then run
 
 ```shell
-node engine/gameInterface.js
+make start-interface
 ```
 
 to start interact with the game

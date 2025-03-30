@@ -1,20 +1,24 @@
 require("dotenv").config();
-const deploymentInformationLocal = require("broadcast/DeployPlantNFTFactory.s.sol/31337/run-latest.json");
+const fs = require("fs");
+
+const deploymentInformationLocal =
+  "broadcast/DeployPlantNFTFactory.s.sol/31337/run-latest.json";
 // const deploymentInformationSepolia = require("broadcast/DeployPlantNFTFactory.s.sol/11155111/run-latest.json");
 
+const localContractAddress = "";
+
 const config = {
-  local: {
+  31337: {
     providerUrl: "http://localhost:8545",
-    // index 0: VRF mock, index 1: LinkToken Mock, index 3: conrtact deployment
-    contractAddress: deploymentInformationLocal.transaction[2].contractAddress,
+    // index 0: VRF mock, index 1: LinkToken Mock, index 2: conrtact deployment
+    contractAddress: getContractAddressFromDeploymentFile(
+      deploymentInformationLocal,
+      2
+    ),
   },
-  sepolia: {
+  11155111: {
     providerUrl: "https://rinkeby.infura.io/v3/YOUR_INFURA_PROJECT_ID",
     contractAddress: "0xYourRinkebyContractAddress",
-  },
-  mainnet: {
-    providerUrl: "https://mainnet.infura.io/v3/YOUR_INFURA_PROJECT_ID",
-    contractAddress: "0xYourMainnetContractAddress",
   },
 };
 
@@ -366,4 +370,36 @@ const plantNFTFactoryABI = [
   { type: "error", name: "PlantNFTFactory_insufficientFee", inputs: [] },
 ];
 
-module.exports = { config, plantNFTFactoryABI };
+async function getPlantContract(chainId) {
+  const web3 = new Web3(config[chainId].providerUrl); // chain address - should be different depending on the chain
+  const contractABI = plantNFTFactoryABI; // should be placed in another file
+  const contractAddress = config["local"].contractAddress; // should be read from another file
+  const contract = new web3.eth.Contract(contractABI, contractAddress);
+  return contract;
+}
+
+async function getContractAddressFromDeploymentFile(
+  deploymentFilePath,
+  location
+) {
+  fs.readFile(deploymentFilePath, "utf8", (err, data) => {
+    if (err) {
+      console.error("读取文件失败:", err);
+      return;
+    }
+
+    try {
+      const jsonData = JSON.parse(data);
+      const contractAddress = jsonData.transactions[location].contractAddress;
+      console.log("Contract Address:", contractAddress);
+      return contractAddress;
+    } catch (parseError) {
+      console.error(
+        "Fail analysing JSON to get deployed contract address:",
+        parseError
+      );
+    }
+  });
+}
+
+module.exports = { config, plantNFTFactoryABI, getPlantContract };

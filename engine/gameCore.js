@@ -1,5 +1,3 @@
-const { ethers, getNamedAccounts } = require("hardhat");
-const contract = require("../utils/contractAddress.js");
 require("dotenv").config();
 
 const GRID_ROWS = 5;
@@ -26,12 +24,6 @@ let turn = 1;
  * 9. End turn
  */
 async function runGame() {
-  const { deployer } = await getNamedAccounts();
-  const contractAddress = contract.address; // change it to the address of your deployed contract
-  const player = await msg.sender();
-  console.log(player);
-
-  const PvZNFT = await ethers.getContractAt("PvZNFT", contractAddress);
   console.log("\n🌿 Welcome to PvZ Blockchain Edition! 🌿\n");
 
   while (true) {
@@ -154,10 +146,3 @@ async function prompt(question) {
     })
   );
 }
-
-runGame()
-  .then(() => process.exit(0))
-  .catch((error) => {
-    console.error(error);
-    process.exit(1);
-  });
