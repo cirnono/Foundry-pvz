@@ -1,11 +1,11 @@
 const Web3 = require("web3");
 // const gameCore = require("./gameCore.js");
-const manageNFT = require("./manageNFT.js");
+const manageNFT = require("../engine/manageNFT.js");
 const {
   getOrAddUserByAddress,
   updateUserTokens,
 } = require("./accountManager.js");
-const { prompt } = require("./utils/utils.js");
+const { prompt } = require("../utils/utils.js");
 require("dotenv").config();
 
 /**
@@ -31,9 +31,10 @@ function startGame() {
  */
 async function connectWallet() {
   // to be done in front end
-  const user = Web3.eth.accounts.create();
-  const userWalletAddress = user.address;
-  const userPrivateKey = user.privateKey;
+  // const user = Web3.eth.accounts.create();
+  // const userWalletAddress = user.address;
+  // const userPrivateKey = user.privateKey;
+  const userWalletAddress = "0x393dB59f5d4212620a1227906415253bdb9F516F";
 
   console.log("Connecting wallet...");
   getOrAddUserByAddress(userWalletAddress).then((user) => {
@@ -48,7 +49,7 @@ async function mintNFT(walletAddress) {
   console.log("Enter minting page");
   let tokens = await getOrAddUserByAddress(walletAddress).tokens;
   console.log(`currently own tokens: ${tokens}`);
-  const tokenId = manageNFT.mintNFT(walletAddress);
+  const tokenId = await manageNFT.mintNFT(walletAddress);
   console.log(tokenId);
   tokens.push(tokenId.toString());
   updateUserTokens(walletAddress, tokens);

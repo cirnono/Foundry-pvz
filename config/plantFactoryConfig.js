@@ -1,26 +1,69 @@
 require("dotenv").config();
 const fs = require("fs");
+const { Web3 } = require("web3");
 
 const deploymentInformationLocal =
   "broadcast/DeployPlantNFTFactory.s.sol/31337/run-latest.json";
 // const deploymentInformationSepolia = require("broadcast/DeployPlantNFTFactory.s.sol/11155111/run-latest.json");
 
-const localContractAddress = "";
+// index 0: VRF mock, index 1: LinkToken Mock, index 2: conrtact deployment
 
 const config = {
   31337: {
     providerUrl: "http://localhost:8545",
-    // index 0: VRF mock, index 1: LinkToken Mock, index 2: conrtact deployment
-    contractAddress: getContractAddressFromDeploymentFile(
-      deploymentInformationLocal,
-      2
-    ),
+    contractAddress: "0x9fe46736679d2d9a65f0992f2272de9f3c7fa6e0",
   },
   11155111: {
     providerUrl: "https://rinkeby.infura.io/v3/YOUR_INFURA_PROJECT_ID",
     contractAddress: "0xYourRinkebyContractAddress",
   },
 };
+
+async function getPlantContract(chainId) {
+  console.log("Ensuring config file is up to date");
+  // await keepConfigUptoDate();
+  const web3 = new Web3(config[chainId].providerUrl); // chain address - should be different depending on the chain.
+  const contractABI = plantNFTFactoryABI; // should be placed in another file
+  const contractAddress = config[chainId].contractAddress; // should be read from another file
+  const contract = new web3.eth.Contract(contractABI, contractAddress);
+  console.log(`contractAddress: ${contractAddress}`);
+  return contract;
+}
+
+async function getContractAddressFromDeploymentFile(
+  deploymentFilePath,
+  location
+) {
+  console.log("Reading file...");
+  return new Promise((resolve, reject) => {
+    fs.readFile(deploymentFilePath, "utf8", (err, data) => {
+      if (err) {
+        console.error("读取文件失败:", err);
+        return;
+      } else {
+        console.log("Analysing file...");
+        const jsonData = JSON.parse(data);
+        const contractAddress = jsonData.transactions[location].contractAddress;
+        console.log("Contract Address:", contractAddress);
+        resolve(contractAddress);
+      }
+    });
+  });
+}
+
+async function keepConfigUptoDate() {
+  console.log("Getting contract deploy address from file...");
+  try {
+    const localContractAddress = await getContractAddressFromDeploymentFile(
+      deploymentInformationLocal,
+      2
+    );
+    console.log(localContractAddress);
+    config[31337].contractAddress = localContractAddress;
+  } catch (error) {
+    console.error("Error updating config: ", error);
+  }
+}
 
 const plantNFTFactoryABI = [
   {
@@ -369,37 +412,5 @@ const plantNFTFactoryABI = [
   },
   { type: "error", name: "PlantNFTFactory_insufficientFee", inputs: [] },
 ];
-
-async function getPlantContract(chainId) {
-  const web3 = new Web3(config[chainId].providerUrl); // chain address - should be different depending on the chain
-  const contractABI = plantNFTFactoryABI; // should be placed in another file
-  const contractAddress = config["local"].contractAddress; // should be read from another file
-  const contract = new web3.eth.Contract(contractABI, contractAddress);
-  return contract;
-}
-
-async function getContractAddressFromDeploymentFile(
-  deploymentFilePath,
-  location
-) {
-  fs.readFile(deploymentFilePath, "utf8", (err, data) => {
-    if (err) {
-      console.error("读取文件失败:", err);
-      return;
-    }
-
-    try {
-      const jsonData = JSON.parse(data);
-      const contractAddress = jsonData.transactions[location].contractAddress;
-      console.log("Contract Address:", contractAddress);
-      return contractAddress;
-    } catch (parseError) {
-      console.error(
-        "Fail analysing JSON to get deployed contract address:",
-        parseError
-      );
-    }
-  });
-}
 
 module.exports = { config, plantNFTFactoryABI, getPlantContract };

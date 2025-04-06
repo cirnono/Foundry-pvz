@@ -1,5 +1,5 @@
 const fs = require("fs");
-const { connectDB, closeDB } = require("./utils/utils.js");
+const { connectDB, closeDB } = require("../utils/utils.js");
 
 async function updateUserTokens(walletAddress, tokens) {
   console.log("Looking for user detail");

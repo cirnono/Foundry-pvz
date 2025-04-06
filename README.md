@@ -40,7 +40,7 @@ cast wallet list
 3. Run script without having private key in anywhere of the files
 
 ```shell
-forge script script/Interactions.s.sol:FundSubscription --rpc-url YOUR_RPC_URL --account YOUR_ACCOUNT_NAME --broadcast
+forge script server/script/Interactions.s.sol:FundSubscription --rpc-url YOUR_RPC_URL --account YOUR_ACCOUNT_NAME --broadcast
 ```
 
 ## Commands

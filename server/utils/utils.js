@@ -1,7 +1,3 @@
-const readline = require("readline").createInterface({
-  input: process.stdin,
-  output: process.stdout,
-});
 const { getPlantContract } = require("./plantFactoryConfig");
 const Web3 = require("web3");
 const { MongoClient } = require("mongodb");
@@ -42,8 +38,13 @@ async function getRandomNumber() {
 }
 
 async function prompt(question) {
+  const readline = require("readline").createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
   return new Promise((resolve) =>
     readline.question(question, (ans) => {
+      readline.close();
       resolve(ans);
     })
   );
@@ -52,6 +53,7 @@ async function prompt(question) {
 async function getPlantNFTFactory() {
   const local_anvil = 31337;
   const contract = await getPlantContract(local_anvil);
+  console.log("returing back to mintNFT");
   return contract;
 }
 

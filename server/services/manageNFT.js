@@ -23,7 +23,9 @@ async function tradeNFT() {
 
 async function mintNFT(walletAddress) {
   console.log("Searching for contract detail...");
-  const plantNFTFactory = getPlantNFTFactory();
+  const plantNFTFactory = await getPlantNFTFactory();
+  // plantNFTFactory.wait();
+  console.log("Just got back the contract object");
   console.log("Contract found at: ", plantNFTFactory.address);
   console.log("Minting new plant for wallet address: ", walletAddress);
 
