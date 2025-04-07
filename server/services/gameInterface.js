@@ -5,7 +5,7 @@ const {
   getOrAddUserByAddress,
   updateUserTokens,
 } = require("./accountManager.js");
-const { prompt } = require("../../server/utils/utils.js");
+const { prompt } = require("../utils/utils.js");
 require("dotenv").config();
 
 /**
@@ -38,7 +38,7 @@ async function connectWallet() {
 
   console.log("Connecting wallet...");
   getOrAddUserByAddress(userWalletAddress).then((user) => {
-    console.log(`Wallet connected: ${userWalletAddress}`);
+    console.log(`Wallet connected: ${user.walletAddress}`);
   });
 
   return userWalletAddress;
@@ -48,6 +48,9 @@ async function mintNFT(walletAddress) {
   // get wallet address
   console.log("Enter minting page");
   let tokens = await getOrAddUserByAddress(walletAddress).tokens;
+  if (!tokens) {
+    tokens = [];
+  }
   console.log(`currently own tokens: ${tokens}`);
   const tokenId = await manageNFT.mintNFT(walletAddress);
   console.log(tokenId);

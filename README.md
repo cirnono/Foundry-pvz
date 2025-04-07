@@ -2,46 +2,10 @@
 
 Users can mint NFTs, which represent different types of plants with different attibutes. Users can then use the NFTs they own to participate in games and fight with Zombies.
 
-## Quick Start:
-
-```shell
-foundryup
-forge install
-forge build
-yarn
-```
-
-## if you have not install forge:
-
-run
-
-```shell
-curl -L https://foundry.paradigm.xyz | bash
-```
-
-and follow the instrauction
-
-## Private Key:
-
-To protect your private key
-
-1. Run and enter your private key, secure with a password
-
-```shell
-cast wallet import YOUR_ACCOUNT_NAME --interactive
-```
-
-2. View existing 'accounts' with
-
-```shell
-cast wallet list
-```
-
-3. Run script without having private key in anywhere of the files
-
-```shell
-forge script server/script/Interactions.s.sol:FundSubscription --rpc-url YOUR_RPC_URL --account YOUR_ACCOUNT_NAME --broadcast
-```
+Frontend: Nextjs
+Backend: nodejs + mongoDB
+Contract: Solidity foundry
+Package management tool: yarn/npm
 
 ## Commands
 

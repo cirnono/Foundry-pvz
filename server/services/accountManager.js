@@ -44,7 +44,7 @@ async function getOrAddUserByAddress(walletAddress) {
       await collection.insertOne(user);
       console.log("New user created");
     }
-    console.log(`user found: ${user}`);
+    console.log(`user found: ${user.walletAddress}`);
     return user;
   } catch (err) {
     console.error("Error happened", err);

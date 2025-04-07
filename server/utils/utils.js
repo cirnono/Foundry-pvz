@@ -9,11 +9,11 @@ const client = new MongoClient(process.env.MONGO_URI);
 let dbInstance = null;
 
 async function getRandomNumberInRange(max, min) {
-  return getRandomNumber() * (max - min + 1) + min;
+  return (await getRandomNumber()) * (max - min + 1) + min;
 }
 
 async function getRandomNumber() {
-  const randomNumberGenerator = getRandomNumberGenerator();
+  const randomNumberGenerator = await getRandomNumberGenerator();
 
   try {
     const tx = await randomNumberGenerator.makeRandomNumberRequest();
