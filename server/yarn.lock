@@ -138,6 +138,11 @@
     multiformats "^11.0.0"
     uint8arrays "^4.0.2"
 
+"@ljharb/tsconfig@^0.3.2":
+  version "0.3.2"
+  resolved "https://registry.yarnpkg.com/@ljharb/tsconfig/-/tsconfig-0.3.2.tgz#743593e23f227393422a2b9612e477d8eef1df17"
+  integrity sha512-eAl8JEVuTikzBOgymq/ndBPOH5hThMLlryKoH3O4evzNHO9VfxKF6f81gxWyCadO6zKKkXO0IVOh+nvYB0aTZQ==
+
 "@mongodb-js/saslprep@^1.1.9":
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/@mongodb-js/saslprep/-/saslprep-1.2.0.tgz#4373d7a87660ea44a0a7a461ff6d8bc832733a4b"

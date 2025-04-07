@@ -1,4 +1,4 @@
-const { getPlantContract } = require("./plantFactoryConfig");
+const { getPlantContract } = require("../config/plantFactoryConfig");
 const Web3 = require("web3");
 const { MongoClient } = require("mongodb");
 const fs = require("fs");

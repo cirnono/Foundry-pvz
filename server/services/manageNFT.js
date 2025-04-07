@@ -1,10 +1,10 @@
 const Web3 = require("web3");
-const plantFeatures = require("./utils/plantFeatures.js");
+const plantFeatures = require("../config/plantFeatures.js");
 const {
   prompt,
   getPlantNFTFactory,
   getRandomNumberInRange,
-} = require("./utils/utils.js");
+} = require("../utils/utils.js");
 require("dotenv").config();
 
 const MINT_FEE = Web3.utils.toWei("0.1", "ether");

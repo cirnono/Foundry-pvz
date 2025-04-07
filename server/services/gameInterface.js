@@ -1,11 +1,11 @@
 const Web3 = require("web3");
 // const gameCore = require("./gameCore.js");
-const manageNFT = require("../engine/manageNFT.js");
+const manageNFT = require("../services/manageNFT.js");
 const {
   getOrAddUserByAddress,
   updateUserTokens,
 } = require("./accountManager.js");
-const { prompt } = require("../utils/utils.js");
+const { prompt } = require("../../server/utils/utils.js");
 require("dotenv").config();
 
 /**
