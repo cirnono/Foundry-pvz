@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-import {Script} from "../lib/forge-std/src/Script.sol";
-import "../src/RandomNumberGenerator.sol";
+import {Script} from "forge-std/Script.sol";
+import {RandomNumberGenerator} from "../src/RandomNumberGenerator.sol";
 import {HelperConfig} from "./HelperConfig.s.sol";
 import {CreateSubscription, FundSubscription, AddConsumer} from "./Interactions.s.sol";
 
@@ -12,34 +12,44 @@ contract DeployRandomNumberGenerator is Script {
         returns (RandomNumberGenerator, HelperConfig)
     {
         HelperConfig helperConfig = new HelperConfig();
+        AddConsumer addConsumer = new AddConsumer();
         HelperConfig.NetworkConfig memory config = helperConfig.getConfig();
 
         if (config.subscriptionId == 0) {
             // create susbscription
             CreateSubscription createSubscription = new CreateSubscription();
-            (config.subscriptionId, config.vrfCoordinator) = createSubscription
-                .createSubscription(config.vrfCoordinator);
+            (
+                config.subscriptionId,
+                config.vrfCoordinatorV2_5
+            ) = createSubscription.createSubscription(
+                config.vrfCoordinatorV2_5,
+                config.account
+            );
             FundSubscription fundSubscription = new FundSubscription();
             fundSubscription.fundSubscription(
-                config.vrfCoordinator,
+                config.vrfCoordinatorV2_5,
                 config.subscriptionId,
-                config.link
+                config.link,
+                config.account
             );
+
+            helperConfig.setConfig(block.chainid, config);
         }
 
         vm.startBroadcast();
         RandomNumberGenerator randomNumberGenerator = new RandomNumberGenerator(
-            config.vrfCoordinator,
+            config.vrfCoordinatorV2_5,
             config.gasLane,
             config.subscriptionId,
             config.callbackGasLimit
         );
         vm.stopBroadcast();
-        AddConsumer addConsumer = new AddConsumer();
+
         addConsumer.addConsumer(
             address(randomNumberGenerator),
-            config.vrfCoordinator,
-            config.subscriptionId
+            config.vrfCoordinatorV2_5,
+            config.subscriptionId,
+            config.account
         );
 
         return (randomNumberGenerator, helperConfig);

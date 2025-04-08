@@ -8,11 +8,7 @@ const {
 require("dotenv").config();
 
 const MINT_FEE = Web3.utils.toWei("0.1", "ether");
-// initialisation
-let plantType;
-console.log("Searching for contract detail...");
-const plantNFTFactory = await getPlantNFTFactory();
-console.log("Contract found at: ", plantNFTFactory.address);
+const plantNFTFactory = getPlantNFTFactory();
 
 async function tradeNFT() {
   try {
@@ -24,9 +20,19 @@ async function tradeNFT() {
   }
 }
 
+// const readline = require("readline").createInterface({
+//   input: process.stdin,
+//   output: process.stdout,
+// });
+
 async function mintNFT(walletAddress) {
+  console.log("Searching for contract detail...");
+  console.log("Contract found at: ", plantNFTFactory._address);
   console.log("Minting new plant for wallet address: ", walletAddress);
   console.log("Available plants: ", Object.keys(plantFeatures).join(", "));
+  // readline.question("Enter plant type: ", (type) => {
+  //   plantType = type;
+  // });
   plantType = await prompt("Enter plant type: ");
   if (!plantFeatures[plantType]) {
     console.log("Invalid plant type!");
@@ -34,7 +40,7 @@ async function mintNFT(walletAddress) {
   }
 
   // request random number from randomNumberGenerator and generate attributes
-  let attributes = generateAttributes(plantType);
+  let attributes = generateAttributes(plantType, walletAddress);
   // output to files
   // upload to IPFS
   // obtain link
@@ -42,27 +48,29 @@ async function mintNFT(walletAddress) {
 
   // mint
   try {
-    const tx = await plantNFTFactory.mintPlant(user.address, metadataURI, {
-      value: MINT_FEE,
-      gasLimit: 500000,
-    });
-    const receipt = await tx.wait();
-    const tokenId = receipt.events[0].args.tokenId.toString();
+    const receipt = await plantNFTFactory.methods
+      .mintPlant(walletAddress, metadataURI, plantType)
+      .send({
+        from: walletAddress,
+        value: MINT_FEE,
+        gas: 500000,
+      });
+
+    const tokenId = receipt.events.PlantMinted.returnValues.tokenId.toString();
+    return tokenId;
   } catch (error) {
     console.error("❌ Minting failed:", error);
   }
-
-  return tokenId;
 }
 
-async function generateAttributes(plantType) {
+async function generateAttributes(plantType, walletAddress) {
   const plant = plantFeatures[plantType];
-  console.log(`${plantType}:`);
-  Object.keys(plant.attributes).forEach((attribute) => {
+
+  for (const attribute of Object.keys(plant.attributes)) {
     const { min, max } = plant.attributes[attribute];
-    const value = getRandomNumberInRange(min, max);
+    const value = await getRandomNumberInRange(min, max, walletAddress)[0];
     console.log(`  ${attribute}: ${value}`);
-  });
+  }
   console.log(plant.message);
 }
 
@@ -75,6 +83,7 @@ plantNFTFactory.events.PlantMinted(
     if (error) {
       console.error("Error occured in PlantMinted Event Listner: ", error);
     } else {
+      const plantType = event.returnValues.type;
       message = plantFeatures[plantType].message;
       message += ` ID: ${event.returnValues.tokenId}`;
       message += event.returnValues.metadataURI;

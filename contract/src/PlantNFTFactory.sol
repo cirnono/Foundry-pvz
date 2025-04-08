@@ -14,7 +14,11 @@ contract PlantNFTFactory is ERC721URIStorage {
     uint256 private s_nextTokenId;
     uint256 private immutable i_mintFee;
 
-    event PlantMinted(uint256 indexed tokenId, string metadataURI);
+    event PlantMinted(
+        uint256 indexed tokenId,
+        string metadataURI,
+        string plantType
+    );
     event PlantTraded(
         uint256 indexed tokenId,
         address indexed prevOwner,
@@ -35,7 +39,8 @@ contract PlantNFTFactory is ERC721URIStorage {
 
     function mintPlant(
         address player,
-        string memory metadataURI
+        string memory metadataURI,
+        string memory plantType
     ) public payable sufficientFee returns (uint256) {
         uint256 newTokenId = s_nextTokenId;
         s_nextTokenId++;
@@ -44,7 +49,7 @@ contract PlantNFTFactory is ERC721URIStorage {
         _setTokenURI(newTokenId, metadataURI);
 
         // 在 mintPlant 中触发事件
-        emit PlantMinted(newTokenId, metadataURI);
+        emit PlantMinted(newTokenId, metadataURI, plantType);
         return (newTokenId);
         // the rest is executed in fulfillRandomWords
     }

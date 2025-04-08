@@ -1,4 +1,5 @@
 require("dotenv").config();
+const { prompt } = require("../utils/utils");
 
 const GRID_ROWS = 5;
 const GRID_COLS = 8;
@@ -131,18 +132,4 @@ function processZombies() {
       zombies[index].col = nextCol;
     }
   });
-}
-
-// helper function used to get user input
-async function prompt(question) {
-  const readline = require("readline").createInterface({
-    input: process.stdin,
-    output: process.stdout,
-  });
-  return new Promise((resolve) =>
-    readline.question(question, (ans) => {
-      readline.close();
-      resolve(ans);
-    })
-  );
 }

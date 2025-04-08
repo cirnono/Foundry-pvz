@@ -1,75 +1,38 @@
-const { getPlantContract } = require("../config/plantFactoryConfig");
+// packages
 const Web3 = require("web3");
 const { MongoClient } = require("mongodb");
 const fs = require("fs");
 require("dotenv").config();
 
-const dbName = "MyPvZ";
-const client = new MongoClient(process.env.MONGO_URI);
-let dbInstance = null;
+// related files
+const { getPlantContract } = require("../config/plantFactoryConfig");
+const {
+  getRandomNumberGeneratorContract,
+} = require("../config/randomNumberGeneratorConfig");
 
-async function getRandomNumberInRange(max, min) {
-  return (await getRandomNumber()) * (max - min + 1) + min;
-}
+// readline management
+const rl = require("readline");
+const readline = rl.createInterface({
+  input: process.stdin,
+  output: process.stdout,
+});
 
-async function getRandomNumber() {
-  const randomNumberGenerator = await getRandomNumberGenerator();
-
-  try {
-    const tx = await randomNumberGenerator.makeRandomNumberRequest();
-    const receipt = await tx.wait();
-    console.log(receipt);
-    // const requestId = receipt.events[0].args.tokenId.toString();
-  } catch (error) {
-    console.error("❌ Resting random number failed:", error);
-  }
-
-  // define mint event
-  const randomNumberGenerated = receipt.events.find(
-    (event) => event.event === "randomNumberGenerated"
-  );
-
-  // an example of how event can be used
-  if (randomNumberGenerated) {
-    const { requestId, randNums } = randomNumberGenerated.args;
-    return randNums;
-  }
-  return [];
-}
-
-async function prompt(question) {
-  const readline = require("readline").createInterface({
-    input: process.stdin,
-    output: process.stdout,
-  });
+function prompt(question) {
   return new Promise((resolve) =>
     readline.question(question, (ans) => {
-      readline.close();
       resolve(ans);
     })
   );
 }
 
-async function getPlantNFTFactory() {
-  const local_anvil = 31337;
-  const contract = await getPlantContract(local_anvil);
-  console.log("returing back to mintNFT");
-  return contract;
+function closePrompt() {
+  readline.close();
 }
 
-function getRandomNumberGenerator() {
-  const randomNumberGeneratorConfig = "randomNumberGeneratorConfig.json";
-  const web3 = new Web3(
-    randomNumberGeneratorConfig.config["local"].providerUrl
-  ); // chain address - should be different depending on the chain
-  const contractABI =
-    randomNumberGeneratorConfig.randomNumberGeneratorConfigABI; // should be placed in another file
-  const contractAddress =
-    randomNumberGeneratorConfig.config["local"].contractAddress; // should be read from another file
-  const contract = new web3.eth.Contract(contractABI, contractAddress);
-
-  return contract;
-}
+// database initialisation
+const dbName = "MyPvZ";
+const client = new MongoClient(process.env.MONGO_URI);
+let dbInstance = null;
 
 async function connectDB() {
   if (dbInstance) {
@@ -77,17 +40,57 @@ async function connectDB() {
   }
   try {
     await client.connect();
-    console.log("成功连接到数据库");
+    console.log("utils - Connected to database");
     dbInstance = client.db(dbName);
     return dbInstance;
   } catch (err) {
-    console.error("连接数据库失败", err);
+    console.error("utils - Fail to connect to database", err);
     throw err;
   }
 }
 
 function closeDB() {
   return client.close();
+}
+
+// manage random numebrs
+async function getRandomNumberInRange(max, min, walletAddress) {
+  return (await getRandomNumber(walletAddress)) * (max - min + 1) + min;
+}
+
+async function getRandomNumber(walletAddress) {
+  const randomNumberGenerator = getRandomNumberGenerator();
+
+  try {
+    const receipt = await randomNumberGenerator.methods
+      .makeRandomNumberRequest(1)
+      .send({ from: walletAddress });
+
+    console.log(receipt);
+    const event = receipt.events.randomNumberGenerated;
+    if (event) {
+      const requestId = event.returnValues.requestId;
+      const randNums = event.returnValues.randNums;
+      console.log("🎲 Random result:", randNums);
+      return randNums;
+    }
+  } catch (error) {
+    console.error("utils - ❌ Requesting random number failed:", error);
+  }
+  return [];
+}
+
+// retrive contracts
+function getPlantNFTFactory() {
+  const local_anvil = 31337;
+  const contract = getPlantContract(local_anvil);
+  return contract;
+}
+
+async function getRandomNumberGenerator() {
+  const local_anvil = 31337;
+  const contract = await getRandomNumberGeneratorContract(local_anvil);
+  return contract;
 }
 
 module.exports = {
@@ -98,4 +101,5 @@ module.exports = {
   getRandomNumberGenerator,
   connectDB,
   closeDB,
+  closePrompt,
 };

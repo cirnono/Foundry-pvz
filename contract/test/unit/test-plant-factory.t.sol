@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.19;
 
-import {Test, console} from "../../lib/forge-std/src/Test.sol";
+import {Test, console} from "forge-std/Test.sol";
 import {DeployPlantNFTFactory} from "../../script/DeployPlantNFTFactory.s.sol";
 import {HelperConfig} from "../../script/HelperConfig.s.sol";
 import {PlantNFTFactory} from "../../src/PlantNFTFactory.sol";
@@ -22,7 +22,7 @@ contract PlantNFTFactoryTest is Test {
     uint256 public constant STARTING_PLAYER_BALANCE = 100 ether;
 
     uint256 mintFee;
-    address vrfCoordinator;
+    address vrfCoordinatorV2_5;
     bytes32 gasLane;
     uint32 callbackGasLimit;
     uint256 subscriptionId;
@@ -33,7 +33,7 @@ contract PlantNFTFactoryTest is Test {
 
         HelperConfig.NetworkConfig memory config = helperConfig.getConfig();
         mintFee = config.mintFee;
-        vrfCoordinator = config.vrfCoordinator;
+        vrfCoordinatorV2_5 = config.vrfCoordinatorV2_5;
         gasLane = config.gasLane;
         callbackGasLimit = config.callbackGasLimit;
         subscriptionId = config.subscriptionId;
@@ -50,7 +50,7 @@ contract PlantNFTFactoryTest is Test {
         vm.expectRevert(
             PlantNFTFactory.PlantNFTFactory_insufficientFee.selector
         );
-        plantNFTFactory.mintPlant(PLAYER, "");
+        plantNFTFactory.mintPlant(PLAYER, "", "Sunflower");
     }
 
     function testPlantMintOne() public {
@@ -58,7 +58,8 @@ contract PlantNFTFactoryTest is Test {
         // Act
         uint256 tokenId = plantNFTFactory.mintPlant{value: mintFee}(
             PLAYER,
-            "hhtp://a"
+            "hhtp://a",
+            "Sunflower"
         );
         // Assert
         assert(plantNFTFactory.ownerOf(tokenId) == PLAYER);
@@ -74,14 +75,17 @@ contract PlantNFTFactoryTest is Test {
         emit PlantMinted(1, "hhtp://a");
         uint256 tokenId = plantNFTFactory.mintPlant{value: mintFee}(
             PLAYER,
-            "hhtp://a"
+            "http://a",
+            "Sunflower"
         );
+        console.log(tokenId);
     }
 
     function testPlantTransferByNonOwner() public {
         uint256 tokenId = plantNFTFactory.mintPlant{value: mintFee}(
             PLAYER,
-            "hhtp://a"
+            "http://a",
+            "Sunflower"
         );
 
         vm.expectRevert("You are not the owner of this NFT");
@@ -91,7 +95,8 @@ contract PlantNFTFactoryTest is Test {
     function testPlantTradeEmitEvent() public {
         uint256 tokenId = plantNFTFactory.mintPlant{value: mintFee}(
             PLAYER,
-            "hhtp://a"
+            "hhtp://a",
+            "Sunflower"
         );
 
         vm.expectEmit(true, true, true, false, address(plantNFTFactory));

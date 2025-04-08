@@ -4,8 +4,9 @@ const manageNFT = require("../services/manageNFT.js");
 const {
   getOrAddUserByAddress,
   updateUserTokens,
+  closeMongoDB,
 } = require("./accountManager.js");
-const { prompt } = require("../utils/utils.js");
+const { prompt, closePrompt } = require("../utils/utils.js");
 require("dotenv").config();
 
 /**
@@ -20,7 +21,7 @@ function startGame() {
   // get user info
   // pass to gameCore.startGame
   // listen to termination of game - e.g. user click terminate
-  console.log("Game loop developing...");
+  console.log("GameInterface - Game loop developing...");
 }
 
 /**
@@ -36,9 +37,9 @@ async function connectWallet() {
   // const userPrivateKey = user.privateKey;
   const userWalletAddress = "0x393dB59f5d4212620a1227906415253bdb9F516F";
 
-  console.log("Connecting wallet...");
+  console.log("GameInterface - Connecting wallet...");
   getOrAddUserByAddress(userWalletAddress).then((user) => {
-    console.log(`Wallet connected: ${user.walletAddress}`);
+    console.log(`GameInterface - Wallet connected: ${user.walletAddress}`);
   });
 
   return userWalletAddress;
@@ -46,14 +47,14 @@ async function connectWallet() {
 
 async function mintNFT(walletAddress) {
   // get wallet address
-  console.log("Enter minting page");
+  console.log("GameInterface - Enter minting page");
   let tokens = await getOrAddUserByAddress(walletAddress).tokens;
   if (!tokens) {
     tokens = [];
   }
-  console.log(`currently own tokens: ${tokens}`);
+  console.log(`GameInterface - currently own tokens: ${tokens}`);
   const tokenId = await manageNFT.mintNFT(walletAddress);
-  console.log(tokenId);
+  console.log(`GameInterface - `, tokenId);
   tokens.push(tokenId.toString());
   updateUserTokens(walletAddress, tokens);
 }
@@ -101,10 +102,13 @@ async function mainPage() {
   const selection = await prompt("Enter the number index to select...");
 
   if (selection == "1") {
-    startGame();
+    await startGame();
   } else if (selection == "2") {
-    mintNFT(walletAddress);
+    await mintNFT(walletAddress);
   } else if (selection == "3") {
-    tradeNFT(walletAddress);
+    await tradeNFT(walletAddress);
   }
+
+  closeMongoDB();
+  closePrompt();
 }

@@ -2,17 +2,15 @@
 pragma solidity ^0.8.19;
 
 // import {Script} from "../lib/forge-std/src/Script.sol";
-import {Script} from "../lib/forge-std/Script.sol";
+
+import {Script} from "forge-std/Script.sol";
 import "../src/PlantNFTFactory.sol";
 import {HelperConfig} from "./HelperConfig.s.sol";
 import {CreateSubscription, FundSubscription, AddConsumer} from "./Interactions.s.sol";
 
 contract DeployPlantNFTFactory is Script {
-    function run() external {
-        PlantNFTFactory plantNFTFactory;
-        HelperConfig helperConfig;
-
-        (plantNFTFactory, helperConfig) = deployPlantNFTFactory();
+    function run() external returns (PlantNFTFactory, HelperConfig) {
+        return deployPlantNFTFactory();
     }
 
     function deployPlantNFTFactory()

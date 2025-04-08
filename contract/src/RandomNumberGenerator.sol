@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-import {VRFConsumerBaseV2Plus} from "../lib/chainlink-brownie-contracts/contracts/src/v0.8/vrf/dev/VRFConsumerBaseV2Plus.sol";
-
-import {VRFV2PlusClient} from "../lib/chainlink-brownie-contracts/contracts/src/v0.8/vrf/dev/libraries/VRFV2PlusClient.sol";
+import {VRFConsumerBaseV2Plus} from "@chainlink/contracts/src/v0.8/vrf/dev/VRFConsumerBaseV2Plus.sol";
+import {VRFV2PlusClient} from "@chainlink/contracts/src/v0.8/vrf/dev/libraries/VRFV2PlusClient.sol";
 
 contract RandomNumberGenerator is VRFConsumerBaseV2Plus {
     bytes32 private immutable i_keyHash;
@@ -12,11 +11,11 @@ contract RandomNumberGenerator is VRFConsumerBaseV2Plus {
     uint32 private immutable i_callbackGasLimit;
 
     constructor(
-        address vrfCoordinator,
+        address vrfCoordinatorV2_5,
         bytes32 gasLane,
         uint256 subscriptionId,
         uint32 callbackGasLimit
-    ) VRFConsumerBaseV2Plus(vrfCoordinator) {
+    ) VRFConsumerBaseV2Plus(vrfCoordinatorV2_5) {
         i_keyHash = gasLane;
         i_subscriptionId = subscriptionId;
         i_callbackGasLimit = callbackGasLimit;
