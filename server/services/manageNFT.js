@@ -30,32 +30,43 @@ async function mintNFT() {
 
   // request random number from randomNumberGenerator and generate attributes
   const plantSkeleton = plantFeatures[plantType];
-  requestRandomNumber(plantSkeleton.length);
+  requestRandomNumber(Object.keys(plantSkeleton["attributes"]).length);
   const attributes = await attributeGenerationListener(plantSkeleton);
   const metadataURI = await uploadAttributesToIPFS(attributes);
   // mint
-  const tokenIndex = await mintPlant(metadataURI, plantType);
+  const tokenId = await mintPlant(metadataURI, plantType);
 
-  return tokenIndex;
+  return tokenId;
 }
 
 async function attributeGenerationListener(plantSkeleton) {
-  // on receive event
-  // generate attributes from ranNum
-  let attributes = [];
-  eventEmitter.on("Random nums received", (requestId, randNums) => {
-    console.log("Received random numebrs:", requestId, randNums);
-    console.log(
-      `manageNFT attributeGenerationListener - plantSkeleton: ${plantSkeleton}`
-    );
-    // ranNums.forEach((ranNum) => {
+  return new Promise((resolve, reject) => {
+    let attributes = [];
+    // on receive event
+    // generate attributes from ranNum
+    eventEmitter.on("Random nums received", (requestId, randNums) => {
+      console.log("Received random numbers:", requestId, randNums);
+      console.log(
+        `manageNFT attributeGenerationListener - plantSkeleton: ${plantSkeleton}`
+      );
 
-    // attributes.push(ranNum * (max - min + 1) + min);
-    // console.log(`  ${attribute}: ${value}`);
-    // console.log(plantSkeleton.message);
-    // });
+      const attributeNames = Object.keys(plantSkeleton["attributes"]);
+      console.log(plantSkeleton["message"]);
+      // Example: generate attributes based on the random numbers and plant skeleton
+      randNums.forEach((ranNum, index) => {
+        const attributeName = attributeNames[index];
+        const { min, max } = plantSkeleton["attributes"][attributeNames];
+
+        const attributeValue = ranNum * (max - min + 1) + min;
+        const attribute = `${attributeName}: ${attributeValue.toFixed(2)}`;
+        attributes.push(attribute);
+
+        console.log(`  ${attributeName}: ${attributeValue.toFixed(2)}`);
+      });
+
+      resolve(attributes);
+    });
   });
-  return attributes;
 }
 
 module.exports = { mintNFT, tradeNFT };
