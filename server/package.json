@@ -2,7 +2,7 @@
   "dependencies": {
     "ethers": "^6.13.5",
     "fs": "^0.0.1-security",
-    "ipfs-http-client": "^60.0.1",
+    "ipfs-http-client": "56.0.2",
     "mongodb": "^6.15.0",
     "web3": "^4.16.0"
   },

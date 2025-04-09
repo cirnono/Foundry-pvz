@@ -1,13 +1,16 @@
 require("dotenv").config();
 const fs = require("fs");
-const { Web3 } = require("web3");
+const path = require("path");
 
-const deploymentInformationLocal =
-  "../../contract/broadcast/DeployRandomNumberGenerator.s.sol/31337/run-latest.json";
+const deploymentInformationLocal = path.join(
+  __dirname,
+  "../../contract/broadcast/DeployRandomNumberGenerator.s.sol/31337/run-latest.json"
+);
+
 // const deploymentInformationSepolia = require("broadcast/DeployPlantNFTFactory.s.sol/11155111/run-latest.json");
 
-function getConfig() {
-  // index 0: VRF mock, index 1: LinkToken Mock, index 2: conrtact deployment
+function getRandomNumberGeneratorConfig() {
+  // index 0: VRF mock, index 1: LinkToken Mock, index 2: conrtact deployment, index 3: call mock to create subscription, index 4: fund subscription, index 5 RandomNumberGenerator
   const contractAddress = getContractAddressFromDeploymentFile(
     deploymentInformationLocal,
     4
@@ -24,36 +27,26 @@ function getConfig() {
     },
   };
 }
-function getRandomNumberGeneratorContract(chainId) {
-  const config = getConfig();
-  const web3 = new Web3(config[chainId].providerUrl); // chain address - should be different depending on the chain
-  const contractABI = randomNumberGeneratorABI; // should be placed in another file
-  const contractAddress = config[chainId].contractAddress; // should be read from another file
-  const contract = new web3.eth.Contract(contractABI, contractAddress);
-  console.log(
-    `RandomNumberGeneratorConfig - contractAddress: ${contractAddress}`
-  );
-  return contract;
-}
 
 function getContractAddressFromDeploymentFile(deploymentFilePath, location) {
   console.log("RandomNumberGeneratorConfig - Reading file...");
-  let contractAddress;
-  fs.readFile(deploymentFilePath, "utf8", (err, data) => {
-    if (err) {
-      console.error("RandomNumberGeneratorConfig - fail reading file:", err);
-      return;
-    } else {
-      console.log("RandomNumberGeneratorConfig - Analysing file...");
-      const jsonData = JSON.parse(data);
-      contractAddress = jsonData.transactions[location].contractAddress;
-      console.log(
-        "RandomNumberGeneratorConfig - Contract Address:",
-        contractAddress
-      );
-    }
-  });
-  return contractAddress;
+  try {
+    const data = fs.readFileSync(deploymentFilePath, "utf8");
+    console.log("RandomNumberGeneratorConfig - Analysing file...");
+    const jsonData = JSON.parse(data);
+    const contractAddress = jsonData.transactions[location].contractAddress;
+    console.log(
+      "RandomNumberGeneratorConfig - Contract Address:",
+      contractAddress
+    );
+    return contractAddress;
+  } catch (err) {
+    console.error(
+      "RandomNumberGeneratorConfig - Failed to read or parse file:",
+      err
+    );
+    return null;
+  }
 }
 
 const randomNumberGeneratorABI = [
@@ -61,7 +54,7 @@ const randomNumberGeneratorABI = [
     type: "constructor",
     inputs: [
       {
-        name: "vrfCoordinator",
+        name: "vrfCoordinatorV2_5",
         type: "address",
         internalType: "address",
       },
@@ -84,6 +77,13 @@ const randomNumberGeneratorABI = [
     name: "acceptOwnership",
     inputs: [],
     outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "makeRandomNumberRequest",
+    inputs: [{ name: "numWords", type: "uint32", internalType: "uint32" }],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
     stateMutability: "nonpayable",
   },
   {
@@ -230,4 +230,4 @@ const randomNumberGeneratorABI = [
   { type: "error", name: "ZeroAddress", inputs: [] },
 ];
 
-module.exports = { getRandomNumberGeneratorContract };
+module.exports = { getRandomNumberGeneratorConfig, randomNumberGeneratorABI };

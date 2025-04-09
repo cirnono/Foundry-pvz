@@ -1,55 +1,43 @@
 require("dotenv").config();
 const fs = require("fs");
-const { Web3 } = require("web3");
+const path = require("path");
 
-const deploymentInformationLocal =
-  "../../contract/broadcast/DeployPlantNFTFactory.s.sol/31337/run-latest.json";
+const deploymentInformationLocal = path.join(
+  __dirname,
+  "../../contract/broadcast/DeployPlantNFTFactory.s.sol/31337/run-latest.json"
+);
 // const deploymentInformationSepolia = require("broadcast/DeployPlantNFTFactory.s.sol/11155111/run-latest.json");
 
-function getConfig() {
-  // index 0: VRF mock, index 1: LinkToken Mock, index 2: conrtact deployment
+function getPlantFactoryConfig() {
+  // index 0: VRF mock, index 1: LinkToken Mock, index 2: plantNFTFactory
   const contractAddress = getContractAddressFromDeploymentFile(
     deploymentInformationLocal,
     2
   );
   return {
     31337: {
-      providerUrl: process.env.ANVIL_RPC_URL,
       contractAddress:
         contractAddress || "0x9fe46736679d2d9a65f0992f2272de9f3c7fa6e0",
     },
     11155111: {
-      providerUrl: process.env.SEPOLIA_RPC_URL,
       contractAddress: "0xYourRinkebyContractAddress",
     },
   };
 }
 
-function getPlantContract(chainId) {
-  const config = getConfig();
-  const web3 = new Web3(config[chainId].providerUrl); // chain address - should be different depending on the chain.
-  const contractABI = plantNFTFactoryABI; // should be placed in another file
-  const contractAddress = config[chainId].contractAddress; // should be read from another file
-  const contract = new web3.eth.Contract(contractABI, contractAddress);
-  console.log(`PlantFactoryConfig - contractAddress: ${contractAddress}`);
-  return contract;
-}
-
 function getContractAddressFromDeploymentFile(deploymentFilePath, location) {
   console.log("PlantFactoryConfig - Reading file...");
-  let contractAddress;
-  fs.readFile(deploymentFilePath, "utf8", (err, data) => {
-    if (err) {
-      console.error("PlantFactoryConfig - fail reading file:", err);
-      return;
-    } else {
-      console.log("PlantFactoryConfig - Analysing file...");
-      const jsonData = JSON.parse(data);
-      contractAddress = jsonData.transactions[location].contractAddress;
-      console.log("PlantFactoryConfig - Contract Address:", contractAddress);
-    }
-  });
-  return contractAddress;
+  try {
+    const data = fs.readFileSync(deploymentFilePath, "utf8");
+    console.log("PlantFactoryConfig - Analysing file...");
+    const jsonData = JSON.parse(data);
+    const contractAddress = jsonData.transactions[location].contractAddress;
+    console.log("PlantFactoryConfig - Contract Address:", contractAddress);
+    return contractAddress;
+  } catch (err) {
+    console.error("PlantFactoryConfig - Fail reading or parsing file:", err);
+    return null;
+  }
 }
 
 const plantNFTFactoryABI = [
@@ -401,5 +389,6 @@ const plantNFTFactoryABI = [
 ];
 
 module.exports = {
-  getPlantContract,
+  getPlantFactoryConfig,
+  plantNFTFactoryABI,
 };

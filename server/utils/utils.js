@@ -1,14 +1,11 @@
 // packages
-const Web3 = require("web3");
 const { MongoClient } = require("mongodb");
 const fs = require("fs");
-require("dotenv").config();
+const { create } = require("ipfs-http-client");
+const ipfs = create({ url: "https://ipfs.infura.io:5001/api/v0" });
+const crypto = require("crypto");
 
-// related files
-const { getPlantContract } = require("../config/plantFactoryConfig");
-const {
-  getRandomNumberGeneratorContract,
-} = require("../config/randomNumberGeneratorConfig");
+require("dotenv").config();
 
 // readline management
 const rl = require("readline");
@@ -53,53 +50,52 @@ function closeDB() {
   return client.close();
 }
 
-// manage random numebrs
-async function getRandomNumberInRange(max, min, walletAddress) {
-  return (await getRandomNumber(walletAddress)) * (max - min + 1) + min;
-}
-
-async function getRandomNumber(walletAddress) {
-  const randomNumberGenerator = getRandomNumberGenerator();
-
-  try {
-    const receipt = await randomNumberGenerator.methods
-      .makeRandomNumberRequest(1)
-      .send({ from: walletAddress });
-
-    console.log(receipt);
-    const event = receipt.events.randomNumberGenerated;
-    if (event) {
-      const requestId = event.returnValues.requestId;
-      const randNums = event.returnValues.randNums;
-      console.log("🎲 Random result:", randNums);
-      return randNums;
-    }
-  } catch (error) {
-    console.error("utils - ❌ Requesting random number failed:", error);
+function simpleHash(data) {
+  const hash = crypto.createHash("sha256");
+  if (Array.isArray(data)) {
+    data = data.join("");
   }
-  return [];
+  data += Date.now().toString();
+  hash.update(data);
+  return hash.digest("hex");
 }
 
-// retrive contracts
-function getPlantNFTFactory() {
-  const local_anvil = 31337;
-  const contract = getPlantContract(local_anvil);
-  return contract;
+async function uploadAttributesToIPFS(attributes) {
+  // output to files
+  const filePath = outputToFile(attributes);
+  // upload to IPFS & obtain link
+  const URI = uploadFileToIPFS(filePath);
+  return URI;
 }
 
-async function getRandomNumberGenerator() {
-  const local_anvil = 31337;
-  const contract = await getRandomNumberGeneratorContract(local_anvil);
-  return contract;
+function outputToFile(attributes) {
+  const name = simpleHash(attributes);
+  const attributesJson = JSON.stringify(attributes, null, 2);
+  const filePath = `../mintedNFT/Plant_${name}_Attributes.json`;
+  fs.writeFileSync(filePath, attributesJson, "utf8");
+  console.log(`Attributes written to ${filePath}`);
+  return filePath;
+}
+
+async function uploadFileToIPFS(filePath) {
+  try {
+    const file = fs.readFileSync(filePath);
+    const added = await ipfs.add(file);
+    const metadataURI = `https://ipfs.infura.io/ipfs/${added.path}`;
+    console.log(`File uploaded to IPFS with URI: ${metadataURI}`);
+  } catch (error) {
+    console.error("Error uploading file to IPFS:", error);
+  } finally {
+    return metadataURI;
+  }
 }
 
 module.exports = {
   prompt,
-  getRandomNumberInRange,
-  getRandomNumber,
-  getPlantNFTFactory,
-  getRandomNumberGenerator,
   connectDB,
   closeDB,
   closePrompt,
+  uploadFileToIPFS,
+  outputToFile,
+  uploadAttributesToIPFS,
 };

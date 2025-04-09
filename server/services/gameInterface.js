@@ -1,12 +1,12 @@
-const Web3 = require("web3");
 // const gameCore = require("./gameCore.js");
 const manageNFT = require("../services/manageNFT.js");
 const {
   getOrAddUserByAddress,
   updateUserTokens,
   closeMongoDB,
-} = require("./accountManager.js");
+} = require("../models/usersDB.js");
 const { prompt, closePrompt } = require("../utils/utils.js");
+const { getUserAddress } = require("../utils/contractManager.js");
 require("dotenv").config();
 
 /**
@@ -35,7 +35,8 @@ async function connectWallet() {
   // const user = Web3.eth.accounts.create();
   // const userWalletAddress = user.address;
   // const userPrivateKey = user.privateKey;
-  const userWalletAddress = "0x393dB59f5d4212620a1227906415253bdb9F516F";
+
+  const userWalletAddress = getUserAddress();
 
   console.log("GameInterface - Connecting wallet...");
   getOrAddUserByAddress(userWalletAddress).then((user) => {

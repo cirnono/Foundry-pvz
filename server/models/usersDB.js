@@ -1,5 +1,5 @@
-const fs = require("fs");
 const { connectDB, closeDB } = require("../utils/utils.js");
+require("dotenv").config();
 
 async function updateUserTokens(walletAddress, tokens) {
   console.log("Account Manager - Looking for user detail");
