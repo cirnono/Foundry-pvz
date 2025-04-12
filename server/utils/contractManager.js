@@ -22,19 +22,29 @@ const NETWORKS = {
 // initialise web3 instance
 const web3 = new Web3(new Web3.providers.HttpProvider(NETWORKS[CHAIN_ID]));
 
-const PRIVATE_KEY = process.env.ANVIL_PRIVATE_KEY;
-const account = web3.eth.accounts.privateKeyToAccount(PRIVATE_KEY);
-web3.eth.accounts.wallet.add(account);
-web3.eth.defaultAccount = account.address;
-console.log("🟢 Web3 initialized with default account:", account.address);
-
 // initialise contract instance
 const plantNFTFactory = getPlantNFTFactory();
 const randomNumberGenerator = getRandomNumberGenerator();
 
+async function connectWallet() {
+  const PRIVATE_KEY = process.env.ANVIL_PRIVATE_KEY;
+  const account = web3.eth.accounts.privateKeyToAccount(PRIVATE_KEY);
+  web3.eth.accounts.wallet.add(account);
+  web3.eth.defaultAccount = account.address;
+  console.log("🟢 Web3 initialized with default account:", account.address);
+}
+
 async function mintPlant(metadataURI, plantType) {
   console.log("Using account:", web3.eth.defaultAccount);
+  const balance = await web3.eth.getBalance(web3.eth.defaultAccount);
+  console.log("Account Balance:", balance);
+  console.log(
+    "ContractManager - mintPlant - using plantNFTFactory:",
+    plantNFTFactory._address
+  );
+
   const nonce = await web3.eth.getTransactionCount(web3.eth.defaultAccount);
+
   try {
     const receipt = await plantNFTFactory.methods
       .mintPlant(web3.eth.defaultAccount, metadataURI, plantType)
@@ -42,28 +52,40 @@ async function mintPlant(metadataURI, plantType) {
         from: web3.eth.defaultAccount,
         value: MINT_FEE,
         nonce: nonce,
-        gas: 500000,
+        gas: 2000000,
       });
 
     const tokenId = receipt.events.PlantMinted.returnValues.tokenId.toString();
     return tokenId;
   } catch (error) {
-    console.error("❌ Minting failed:", error);
+    console.error("Contract Manager - ❌ Minting failed:", error);
   }
 }
 
 // manage random numebrs
 async function requestRandomNumber(numOfRandNums) {
   console.log("Using account:", web3.eth.defaultAccount);
-  const nonce = await web3.eth.getTransactionCount(web3.eth.defaultAccount);
 
+  const balance = await web3.eth.getBalance(web3.eth.defaultAccount);
+  console.log("Account Balance:", balance);
+  console.log(
+    "ContractManager - requestRandomNumber - using randomNumberGenerator:",
+    randomNumberGenerator._address
+  );
+  const nonce = await web3.eth.getTransactionCount(web3.eth.defaultAccount);
   try {
     const receipt = await randomNumberGenerator.methods
       .makeRandomNumberRequest(numOfRandNums)
       .send({ from: web3.eth.defaultAccount, nonce: nonce, gas: 500000 });
-    console.log(receipt);
+    console.log(
+      "Contract Manager - requestRandomNumber - Random number requested",
+      receipt
+    );
   } catch (error) {
-    console.error("utils - ❌ Requesting random number failed:", error);
+    console.error(
+      "Contract Manager - ❌ Requesting random number failed:",
+      error
+    );
   }
 }
 

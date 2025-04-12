@@ -7,7 +7,11 @@ import {HelperConfig} from "../../script/HelperConfig.s.sol";
 import {PlantNFTFactory} from "../../src/PlantNFTFactory.sol";
 
 contract PlantNFTFactoryTest is Test {
-    event PlantMinted(uint256 indexed tokenId, string metadataURI);
+    event PlantMinted(
+        uint256 indexed tokenId,
+        string metadataURI,
+        string plantType
+    );
     event PlantTraded(
         uint256 indexed tokenId,
         address indexed prevOwner,
@@ -72,7 +76,7 @@ contract PlantNFTFactoryTest is Test {
 
     function testPlantMintEmitEvent() public {
         vm.expectEmit(true, false, false, true, address(plantNFTFactory));
-        emit PlantMinted(1, "hhtp://a");
+        emit PlantMinted(1, "http://a", "Sunflower");
         uint256 tokenId = plantNFTFactory.mintPlant{value: mintFee}(
             PLAYER,
             "http://a",

@@ -95,8 +95,8 @@ contract HelperConfig is CodeConstants, Script {
                 MOCK_WEI_PER_UINT_LINK
             );
         LinkToken linkToken = new LinkToken();
-        // uint256 subscriptionId = VRFCoordinatorV2_5Mock.createSubscription();
-        uint256 subscriptionId = 54174560830732643534819098842457510381321641135787878205144107635902442412850;
+        uint256 subscriptionId = VRFCoordinatorV2_5Mock.createSubscription();
+        // uint256 subscriptionId = 0;
         vm.stopBroadcast();
 
         localNetworkConfig = NetworkConfig({

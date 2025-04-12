@@ -9,6 +9,7 @@ const {
 } = require("../utils/contractManager.js");
 const eventEmitter = require("../utils/eventEmitter");
 
+// not completed
 async function tradeNFT() {
   try {
     const tx = await plantNFTFactory.tradePlant(tokenId, from, to);
@@ -29,14 +30,41 @@ async function mintNFT() {
   }
 
   // request random number from randomNumberGenerator and generate attributes
-  const plantSkeleton = plantFeatures[plantType];
-  requestRandomNumber(Object.keys(plantSkeleton["attributes"]).length);
-  const attributes = await attributeGenerationListener(plantSkeleton);
-  const metadataURI = await uploadAttributesToIPFS(attributes);
+  // await requestRandomNumber(
+  //   Object.keys(plantFeatures[plantType]["attributes"]).length
+  // );
+  // const attributes = await attributeGenerationListener(plantSkeleton);
+  const attributes = await temporaryGenerator(plantFeatures, plantType); // for testing purpose
+  // const metadataURI = await uploadAttributesToIPFS(attributes);
+  const metadataURI =
+    "https://ipfs.io/ipfs/QmVpnsgaZ8gwn9Uf2CEgpphFqBgTYv6fbYrbu71325zbrx"; // for testing purpose
   // mint
   const tokenId = await mintPlant(metadataURI, plantType);
 
   return tokenId;
+}
+
+async function temporaryGenerator(plantFeatures, plantType) {
+  const plantSkeleton = plantFeatures[plantType];
+  let attributes = { PlantType: plantType };
+  // on receive event
+  // generate attributes from ranNum
+  const requestId = 1;
+  const randNums = [Math.random(), Math.random(), Math.random()];
+  console.log("Received random numbers:", requestId, randNums);
+
+  const attributeNames = Object.keys(plantSkeleton["attributes"]);
+  // Example: generate attributes based on the random numbers and plant skeleton
+  randNums.forEach((ranNum, index) => {
+    const attributeName = attributeNames[index];
+    const { min, max } = plantSkeleton["attributes"][attributeName];
+
+    const attributeValue = ranNum * (max - min + 1) + min;
+    attributes[attributeName] = attributeValue.toFixed(2);
+    console.log(`  ${attributeName}: ${attributeValue.toFixed(2)}`);
+  });
+  console.log(plantSkeleton.message);
+  return attributes;
 }
 
 async function attributeGenerationListener(plantSkeleton) {

@@ -23,9 +23,7 @@ contract RandomNumberGenerator is VRFConsumerBaseV2Plus {
 
     event randomNumberGenerated(uint indexed, uint256[]);
 
-    function makeRandomNumberRequest(
-        uint32 numWords
-    ) internal returns (uint256) {
+    function makeRandomNumberRequest(uint32 numWords) public returns (uint256) {
         uint256 requestId = s_vrfCoordinator.requestRandomWords(
             VRFV2PlusClient.RandomWordsRequest({
                 keyHash: i_keyHash,
